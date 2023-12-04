@@ -20,6 +20,7 @@
  */
 
 #pragma once
+#include "pch.h"
 
 /* data API */
 typedef struct {
@@ -29,53 +30,56 @@ typedef struct {
 	int    size;     /* total size of this buffer */
 } datap;
 
-DECLSPEC_IMPORT void    BeaconDataParse(datap * parser, char * buffer, int size);
-DECLSPEC_IMPORT char *  BeaconDataPtr(datap * parser, int size);
-DECLSPEC_IMPORT int     BeaconDataInt(datap * parser);
-DECLSPEC_IMPORT short   BeaconDataShort(datap * parser);
-DECLSPEC_IMPORT int     BeaconDataLength(datap * parser);
-DECLSPEC_IMPORT char *  BeaconDataExtract(datap * parser, int * size);
+void    BeaconDataParse(datap * parser, char * buffer, int size);
+char *  BeaconDataPtr(datap * parser, int size);
+int     BeaconDataInt(datap * parser);
+short   BeaconDataShort(datap * parser);
+int     BeaconDataLength(datap * parser);
+char *  BeaconDataExtract(datap * parser, int * size);
 
 /* format API */
-typedef struct {
-	char * original; /* the original buffer [so we can free it] */
-	char * buffer;   /* current pointer into our buffer */
-	int    length;   /* remaining length of data */
-	int    size;     /* total size of this buffer */
-} formatp;
+typedef datap formatp;
 
-DECLSPEC_IMPORT void    BeaconFormatAlloc(formatp * format, int maxsz);
-DECLSPEC_IMPORT void    BeaconFormatReset(formatp * format);
-DECLSPEC_IMPORT void    BeaconFormatAppend(formatp * format, char * text, int len);
-DECLSPEC_IMPORT void    BeaconFormatPrintf(formatp * format, char * fmt, ...);
-DECLSPEC_IMPORT char *  BeaconFormatToString(formatp * format, int * size);
-DECLSPEC_IMPORT void    BeaconFormatFree(formatp * format);
-DECLSPEC_IMPORT void    BeaconFormatInt(formatp * format, int value);
+void    BeaconFormatAlloc(formatp * format, int maxsz);
+void    BeaconFormatReset(formatp * format);
+void    BeaconFormatAppend(formatp * format, char * text, int len);
+void    BeaconFormatPrintf(formatp * format, char * fmt, ...);
+char *  BeaconFormatToString(formatp * format, int * size);
+void    BeaconFormatFree(formatp * format);
+void    BeaconFormatInt(formatp * format, int value);
 
 /* Output Functions */
 #define CALLBACK_OUTPUT      0x0
 #define CALLBACK_OUTPUT_OEM  0x1e
 #define CALLBACK_OUTPUT_UTF8 0x20
-#define CALLBACK_ERROR       0x0d
+#define CALLBACK_POST_ERROR       0x0d
+#define CALLBACK_ERROR 0x1f
 
-DECLSPEC_IMPORT void   BeaconOutput(int type, char * data, int len);
-DECLSPEC_IMPORT void   BeaconPrintf(int type, char * fmt, ...);
+void   BeaconOutput(int type, char * data, int len);
+void   BeaconPrintf(int type, char * fmt, ...);
 
+void BeaconErrorD(int type, int d1);
+void BeaconErrorDD(int type, int d1, int d2);
+void BeaconErrorNA(int type);
+void BeaconErrorS(int type, char * s1);
+void BeaconErrorDS(int type, int d1, char * s1);
+void BeaconErrorDDS(int type, int d1, int d2, char* s1);
+void BeaconErrorPrintf(int type, char * fmt, ...);
 
 /* Token Functions */
-DECLSPEC_IMPORT BOOL   BeaconUseToken(HANDLE token);
-DECLSPEC_IMPORT void   BeaconRevertToken();
-DECLSPEC_IMPORT BOOL   BeaconIsAdmin();
+BOOL   BeaconUseToken(HANDLE token);
+void   BeaconRevertToken(void);
+BOOL   BeaconIsAdmin(void);
 
 /* Spawn+Inject Functions */
-DECLSPEC_IMPORT void   BeaconGetSpawnTo(BOOL x86, char * buffer, int length);
-DECLSPEC_IMPORT void   BeaconInjectProcess(HANDLE hProc, int pid, char * payload, int p_len, int p_offset, char * arg, int a_len);
-DECLSPEC_IMPORT void   BeaconInjectTemporaryProcess(PROCESS_INFORMATION * pInfo, char * payload, int p_len, int p_offset, char * arg, int a_len);
-DECLSPEC_IMPORT BOOL   BeaconSpawnTemporaryProcess(BOOL x86, BOOL ignoreToken, STARTUPINFO * si, PROCESS_INFORMATION * pInfo);
-DECLSPEC_IMPORT void   BeaconCleanupProcess(PROCESS_INFORMATION * pInfo);
+void   BeaconGetSpawnTo(BOOL x86, char * buffer, int length);
+void   BeaconInjectProcess(HANDLE hProc, int pid, char * payload, int p_len, int p_offset, char * arg, int a_len);
+void   BeaconInjectTemporaryProcess(PROCESS_INFORMATION * pInfo, char * payload, int p_len, int p_offset, char * arg, int a_len);
+BOOL   BeaconSpawnTemporaryProcess(BOOL x86, BOOL ignoreToken, STARTUPINFO * si, PROCESS_INFORMATION * pInfo);
+void   BeaconCleanupProcess(PROCESS_INFORMATION * pInfo);
 
 /* Utility Functions */
-DECLSPEC_IMPORT BOOL   toWideChar(char * src, wchar_t * dst, int max);
+BOOL   toWideChar(char * src, wchar_t * dst, int max);
 
 /* Beacon Information */
 /*
@@ -118,7 +122,7 @@ typedef struct {
 	char    mask[MASK_SIZE];
 } BEACON_INFO;
 
-DECLSPEC_IMPORT void   BeaconInformation(BEACON_INFO * info);
+void   BeaconInformation(BEACON_INFO * info);
 
 /* Key/Value store functions
  *    These functions are used to associate a key to a memory address and save
@@ -135,9 +139,9 @@ DECLSPEC_IMPORT void   BeaconInformation(BEACON_INFO * info);
  *    - The contents at the memory address is not released by beacon.
  *
  */
-DECLSPEC_IMPORT BOOL BeaconAddValue(const char * key, void * ptr);
-DECLSPEC_IMPORT void * BeaconGetValue(const char * key);
-DECLSPEC_IMPORT BOOL BeaconRemoveValue(const char * key);
+BOOL BeaconAddValue(const char * key, void * ptr);
+void * BeaconGetValue(const char * key);
+BOOL BeaconRemoveValue(const char * key);
 
 /* Beacon Data Store functions
  *    These functions are used to access items in Beacon's Data Store.
@@ -160,10 +164,10 @@ typedef struct {
 	size_t length;
 } DATA_STORE_OBJECT, *PDATA_STORE_OBJECT;
 
-DECLSPEC_IMPORT PDATA_STORE_OBJECT BeaconDataStoreGetItem(size_t index);
-DECLSPEC_IMPORT void BeaconDataStoreProtectItem(size_t index);
-DECLSPEC_IMPORT void BeaconDataStoreUnprotectItem(size_t index);
-DECLSPEC_IMPORT size_t BeaconDataStoreMaxEntries();
+PDATA_STORE_OBJECT BeaconDataStoreGetItem(size_t index);
+void BeaconDataStoreProtectItem(size_t index);
+void BeaconDataStoreUnprotectItem(size_t index);
+size_t BeaconDataStoreMaxEntries();
 
 /* Beacon User Data functions */
-DECLSPEC_IMPORT char * BeaconGetCustomUserData();
+char * BeaconGetCustomUserData();
