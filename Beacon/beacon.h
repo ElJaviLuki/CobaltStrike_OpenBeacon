@@ -19,6 +19,8 @@
  *    9/01/2023: Added BeaconGetCustomUserData API for 4.9
  */
 
+#pragma once
+
 /* data API */
 typedef struct {
 	char * original; /* the original buffer [so we can free it] */
