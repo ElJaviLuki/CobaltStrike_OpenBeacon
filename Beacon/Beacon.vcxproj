@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="beacon.h" />
+    <ClInclude Include="logger.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
