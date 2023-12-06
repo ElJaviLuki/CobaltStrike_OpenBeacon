@@ -13,6 +13,15 @@
 #include <stdio.h>
 #include <time.h>
 
+#define LTM_DESC
+#define LTC_NO_HASHES
+//Only SHA256 is needed
+#define LTC_SHA256
+#define LTC_HASH_HELPERS
+#define LTC_NO_MACS
+#define LTC_HMAC
+#include "tomcrypt.h"
+
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #include <windows.h>
