@@ -25,6 +25,8 @@
 #define LLOG(...) LOG("\n", "", __VA_ARGS__)
 #define LNEWLINE() LOG("\n")
 
+#define LAST_ERROR_STR(...) "" // TODO: Implement
+
 #else
 
 #define LINFO(...)
@@ -34,5 +36,7 @@
 #define LTODO(...)
 #define LLOG(...)
 #define LNEWLINE()
+
+#define LAST_ERROR_STR(...)
 
 #endif
