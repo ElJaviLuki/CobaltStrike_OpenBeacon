@@ -94,21 +94,25 @@
     <OutDir>$(SolutionDir)out\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(SolutionDir)int\$(Configuration)\$(Platform)</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)out\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(SolutionDir)int\$(Configuration)\$(Platform)</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)out\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(SolutionDir)int\$(Configuration)\$(Platform)</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)out\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(SolutionDir)int\$(Configuration)\$(Platform)</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
