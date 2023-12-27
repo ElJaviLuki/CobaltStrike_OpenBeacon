@@ -24,6 +24,7 @@
     <ClInclude Include="logger.h" />
     <ClInclude Include="macros.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="settings.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="beacon.c" />
