@@ -38,5 +38,8 @@
     <ClCompile Include="pch.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="beacon.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

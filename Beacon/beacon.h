@@ -22,6 +22,12 @@
 #pragma once
 #include "pch.h"
 
+typedef struct
+{
+	char* buffer;
+	int size;
+} sizedbuf;
+
 /* data API */
 typedef struct {
 	char * original; /* the original buffer [so we can free it] */
@@ -34,7 +40,10 @@ void    BeaconDataParse(datap * parser, char * buffer, int size);
 char *  BeaconDataPtr(datap * parser, int size);
 int     BeaconDataInt(datap * parser);
 short   BeaconDataShort(datap * parser);
+char    BeaconDataChar(datap * parser);
+char*   BeaconDataOriginal(datap* parser);
 int     BeaconDataLength(datap * parser);
+void    BeaconDataSizedBuffer(datap * parser, sizedbuf* sb);
 char *  BeaconDataExtract(datap * parser, int * size);
 
 /* format API */
