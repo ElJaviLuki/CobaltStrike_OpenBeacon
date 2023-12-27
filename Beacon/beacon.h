@@ -49,11 +49,7 @@ void    BeaconFormatFree(formatp * format);
 void    BeaconFormatInt(formatp * format, int value);
 
 /* Output Functions */
-#define CALLBACK_OUTPUT      0x0
-#define CALLBACK_OUTPUT_OEM  0x1e
-#define CALLBACK_OUTPUT_UTF8 0x20
-#define CALLBACK_POST_ERROR       0x0d
-#define CALLBACK_ERROR 0x1f
+#include "callback.h"
 
 void   BeaconOutput(int type, char * data, int len);
 void   BeaconPrintf(int type, char * fmt, ...);
