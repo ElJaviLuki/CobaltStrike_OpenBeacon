@@ -28,7 +28,7 @@ typedef struct
 	int size;
 } sizedbuf;
 
-/* data API */
+/* data API - unpacks data */
 typedef struct {
 	char * original; /* the original buffer [so we can free it] */
 	char * buffer;   /* current pointer into our buffer */
@@ -36,26 +36,39 @@ typedef struct {
 	int    size;     /* total size of this buffer */
 } datap;
 
+datap*  BeaconDataAlloc(int size);
+void    BeaconDataFree(datap * parser);
 void    BeaconDataParse(datap * parser, char * buffer, int size);
 char *  BeaconDataPtr(datap * parser, int size);
 int     BeaconDataInt(datap * parser);
 short   BeaconDataShort(datap * parser);
 char    BeaconDataChar(datap * parser);
+char *  BeaconDataStringPointer(datap * parser);
+char *  BeaconDataStringPointerCopy(datap * parser, int size);
+int     BeaconDataStringCopySafe(datap * parser, char * buffer, int size);
+int     BeaconDataStringCopy(datap* parser, char* buffer, int size);
 char*   BeaconDataOriginal(datap* parser);
+char*   BeaconDataBuffer(datap* parser);
 int     BeaconDataLength(datap * parser);
 void    BeaconDataSizedBuffer(datap * parser, sizedbuf* sb);
 char *  BeaconDataExtract(datap * parser, int * size);
+void    BeaconDataZero(datap * parser);
 
-/* format API */
+/* format API - packs data */
 typedef datap formatp;
 
 void    BeaconFormatAlloc(formatp * format, int maxsz);
+void    BeaconFormatUse(formatp * format, char * buffer, int size);
 void    BeaconFormatReset(formatp * format);
 void    BeaconFormatAppend(formatp * format, char * text, int len);
 void    BeaconFormatPrintf(formatp * format, char * fmt, ...);
-char *  BeaconFormatToString(formatp * format, int * size);
 void    BeaconFormatFree(formatp * format);
 void    BeaconFormatInt(formatp * format, int value);
+void    BeaconFormatShort(formatp * format, short value);
+void    BeaconFormatChar(formatp * format, char value);
+
+/* once you're done with the format... */
+char *  BeaconFormatToString(formatp * format, int * size);
 
 /* Output Functions */
 #include "callback.h"

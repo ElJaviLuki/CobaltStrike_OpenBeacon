@@ -44,5 +44,11 @@
     <ClCompile Include="beacon.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="beacon_data.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="beacon_format.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
