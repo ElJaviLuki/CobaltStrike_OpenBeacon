@@ -25,3 +25,9 @@
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #include <windows.h>
+
+#include "logger.h"
+#include "macros.h"
+
+// This forces the programmer to not use 'auto' keyword ever, otherwise the compiler will throw an error.
+#define auto error
