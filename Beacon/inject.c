@@ -166,6 +166,7 @@ char* InjectRemotely(INJECTION* injection, const char* str, int aLen)
 
 void InjectAndExecute(INJECTION* injection, char* payload, int pLen, int pOffset, char* parameter)
 {
+	LTODO("Implement InjectAndExecute");
 	return;
 }
 
