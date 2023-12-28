@@ -44,13 +44,13 @@
     <ClCompile Include="beacon.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="beacon_data.c">
+    <ClCompile Include="data.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="beacon_format.c">
+    <ClCompile Include="format.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="beacon_token.c">
+    <ClCompile Include="token.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
