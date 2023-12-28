@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="beacon.h" />
     <ClInclude Include="callback.h" />
+    <ClInclude Include="error.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="macros.h" />
     <ClInclude Include="pch.h" />
