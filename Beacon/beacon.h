@@ -94,7 +94,7 @@ BOOL   BeaconIsAdmin(void);
 
 /* Spawn+Inject Functions */
 void   BeaconGetSpawnTo(BOOL x86, char * buffer, int length);
-void   BeaconInjectProcess(HANDLE hProc, int pid, char * payload, int p_len, int p_offset, char * arg, int a_len);
+void   BeaconInjectProcess(HANDLE hProcess, int pid, char * payload, int p_len, int p_offset, char * arg, int a_len);
 void   BeaconInjectTemporaryProcess(PROCESS_INFORMATION * pInfo, char * payload, int p_len, int p_offset, char * arg, int a_len);
 BOOL   BeaconSpawnTemporaryProcess(BOOL x86, BOOL ignoreToken, STARTUPINFO * si, PROCESS_INFORMATION * pInfo);
 void   BeaconCleanupProcess(PROCESS_INFORMATION * pInfo);
