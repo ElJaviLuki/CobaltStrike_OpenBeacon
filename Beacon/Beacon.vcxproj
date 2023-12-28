@@ -30,6 +30,7 @@
     <ClCompile Include="beacon.c" />
     <ClCompile Include="beacon_data.c" />
     <ClCompile Include="beacon_format.c" />
+    <ClCompile Include="beacon_token.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="pch.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
