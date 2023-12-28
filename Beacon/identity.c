@@ -83,7 +83,7 @@ void IdentityGetUid(void)
 	} else
 	{
 		LERROR("Failed to open token");
-		BeaconErrorNA(ERROR_COULD_NOT_OPEN_TOKEN);
+		BeaconErrorNA(ERROR_OPEN_TOKEN_FAILED);
 	}
 }
 

