@@ -66,6 +66,21 @@ void BeaconFormatChar(formatp* format, char value)
 	BeaconFormatAppend(format, (char*)&value, sizeof(char));
 }
 
+char* BeaconFormatOriginal(formatp* format)
+{
+	return format->original;
+}
+
+char* BeaconFormatBuffer(formatp* format)
+{
+	return format->buffer;
+}
+
+int BeaconFormatLength(formatp* format)
+{
+	return format->length;
+}
+
 char* BeaconFormatToString(formatp* format, int* size)
 {
 	if (!size)

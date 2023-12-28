@@ -66,6 +66,9 @@ void    BeaconFormatFree(formatp * format);
 void    BeaconFormatInt(formatp * format, int value);
 void    BeaconFormatShort(formatp * format, short value);
 void    BeaconFormatChar(formatp * format, char value);
+char*   BeaconFormatOriginal(formatp* format);
+char*   BeaconFormatBuffer(formatp* format);
+int     BeaconFormatLength(formatp* format);
 
 /* once you're done with the format... */
 char *  BeaconFormatToString(formatp * format, int * size);
