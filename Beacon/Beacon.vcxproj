@@ -31,7 +31,7 @@
     <ClCompile Include="beacon.c" />
     <ClCompile Include="data.c" />
     <ClCompile Include="format.c" />
-    <ClCompile Include="token.c" />
+    <ClCompile Include="identity.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="pch.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
