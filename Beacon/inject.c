@@ -511,39 +511,6 @@ BOOL ExecuteViaCreateRemoteThread_s(DWORD option, HANDLE hProcess, LPVOID lpAddr
 	return ResumeThread(hThread) != -1;
 }
 
-BOOL ExecuteViaSetThreadContext_x64(HANDLE hThread, LPVOID lpStartAddress, LPVOID lpParameter)
-{
-	CONTEXT context;
-	context.ContextFlags = CONTEXT_INTEGER;
-
-	if (!GetThreadContext(hThread, &context))
-		return FALSE;
-
-	context.Rcx = (DWORD64)lpStartAddress;
-	context.Rdx = (DWORD64)lpParameter;
-
-	if (!SetThreadContext(hThread, &context))
-		return FALSE;
-
-	return ResumeThread(hThread) != -1;
-}
-
-BOOL ExecuteViaSetThreadContext_x64_x86EmulationMode(HANDLE hThread, LPVOID lpStartAddress, LPVOID lpParameter)
-{
-	WOW64_CONTEXT context;
-	context.ContextFlags = CONTEXT_INTEGER;
-
-	if (!Wow64GetThreadContext(hThread, &context))
-		return FALSE;
-
-	context.Eax = (DWORD)lpStartAddress;
-
-	if (!Wow64SetThreadContext(hThread, &context))
-		return FALSE;
-
-	return ResumeThread(hThread) != -1;
-}
-
 BOOL ExecuteViaSetThreadContext(INJECTION* injection, CHAR* lpStartAddress, LPVOID lpParameter)
 {
 	HANDLE hThread = injection->thread;
