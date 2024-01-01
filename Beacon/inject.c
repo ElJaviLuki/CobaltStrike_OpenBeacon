@@ -285,29 +285,28 @@ __declspec(noinline) void NtQueueApcThreadProc(PAPC_ROUTINE_CONTEXT pData)
 __declspec(noinline) void NtQueueApcThreadProc_End(void) {}
 #pragma code_seg(pop)
 
-LPVOID ExecuteViaNtQueueApcThreadInternal(HANDLE hProcess, DWORD pid, PAPC_ROUTINE_CONTEXT pData)
-{
-	SIZE_T payloadSize = (DWORD64)NtQueueApcThreadProc_End - (DWORD64)NtQueueApcThreadProc;
-	SIZE_T dwSize = sizeof(APC_ROUTINE_CONTEXT) + payloadSize;
-	PAPC_ROUTINE_CONTEXT pAllocedData = malloc(dwSize);
-	*pAllocedData = *pData;
-	memcpy(pAllocedData->payload, (PVOID)NtQueueApcThreadProc, payloadSize);
-	LPVOID lpBaseAddress = VirtualAllocEx(hProcess, NULL, dwSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-	SIZE_T wrote;
-	if (lpBaseAddress && WriteProcessMemory(hProcess, lpBaseAddress, pAllocedData, dwSize, &wrote) && wrote != dwSize)
-		lpBaseAddress = NULL;
-
-	free(pAllocedData);
-	return lpBaseAddress;
-}
-
 BOOL ExecuteViaNtQueueApcThread(INJECTION* injection, LPVOID lpStartAddress, LPVOID lpParameter)
 {
 	HMODULE hModule = GetModuleHandleA("ntdll");
 	FN_NTDLL_NTQUEUEAPCTHREAD _NtQueueApcThread = (FN_NTDLL_NTQUEUEAPCTHREAD)GetProcAddress(hModule, "NtQueueApcThread");
 
+	SIZE_T payloadSize = (DWORD64)NtQueueApcThreadProc_End - (DWORD64)NtQueueApcThreadProc;
+	SIZE_T dwSize = sizeof(APC_ROUTINE_CONTEXT) + payloadSize;
+	PAPC_ROUTINE_CONTEXT pAllocedData = malloc(dwSize);
+	if (!pAllocedData)
+		return FALSE;
+
 	APC_ROUTINE_CONTEXT data = (APC_ROUTINE_CONTEXT){ lpStartAddress, lpParameter, CreateThread, FALSE };
-	APC_ROUTINE_CONTEXT* lpApcContext = (APC_ROUTINE_CONTEXT*)ExecuteViaNtQueueApcThreadInternal(injection->process, injection->pid, &data);
+	*pAllocedData = data;
+	memcpy(pAllocedData->payload, (PVOID)NtQueueApcThreadProc, payloadSize);
+	APC_ROUTINE_CONTEXT* lpApcContext = VirtualAllocEx(injection->process, NULL, dwSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+	SIZE_T wrote;
+	if (lpApcContext && WriteProcessMemory(injection->process, lpApcContext, pAllocedData, dwSize, &wrote) && wrote != dwSize)
+		lpApcContext = NULL;
+
+	free(pAllocedData);
+
 	if ((char*)lpApcContext == NULL)
 		return FALSE;
 
