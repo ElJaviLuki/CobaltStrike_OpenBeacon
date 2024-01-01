@@ -70,7 +70,7 @@ short BeaconDataShort(datap* parser)
 	return data;
 }
 
-char BeaconDataChar(datap* parser)
+char BeaconDataByte(datap* parser)
 {
 	if (parser->length < sizeof(char))
 		return 0;

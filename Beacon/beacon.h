@@ -42,7 +42,7 @@ void    BeaconDataParse(datap * parser, char * buffer, int size);
 char *  BeaconDataPtr(datap * parser, int size);
 int     BeaconDataInt(datap * parser);
 short   BeaconDataShort(datap * parser);
-char    BeaconDataChar(datap * parser);
+char    BeaconDataByte(datap * parser);
 char *  BeaconDataStringPointer(datap * parser);
 char *  BeaconDataStringPointerCopy(datap * parser, int size);
 int     BeaconDataStringCopySafe(datap * parser, char * buffer, int size);
