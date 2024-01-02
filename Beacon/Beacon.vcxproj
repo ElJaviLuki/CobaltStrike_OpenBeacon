@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="beacon.h" />
     <ClInclude Include="callback.h" />
+    <ClInclude Include="command.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="identity.h" />
     <ClInclude Include="logger.h" />
@@ -43,6 +44,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="spawn.c" />
+    <ClCompile Include="task.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libtomcrypt\libtomcrypt_VS2008.vcxproj">

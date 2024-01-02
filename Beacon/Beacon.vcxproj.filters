@@ -36,6 +36,9 @@
     <ClInclude Include="error.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="command.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="spawn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -63,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="spawn.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="task.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
