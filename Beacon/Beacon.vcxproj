@@ -23,6 +23,7 @@
     <ClInclude Include="callback.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="filesystem.h" />
     <ClInclude Include="identity.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="macros.h" />
@@ -34,6 +35,7 @@
   <ItemGroup>
     <ClCompile Include="beacon.c" />
     <ClCompile Include="data.c" />
+    <ClCompile Include="filesystem.c" />
     <ClCompile Include="format.c" />
     <ClCompile Include="identity.c" />
     <ClCompile Include="inject.c" />
