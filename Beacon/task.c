@@ -8,7 +8,12 @@ void TaskDispatch(int cmd, char* buffer, int size)
 {
 	switch (cmd)
 	{
-		
+		case COMMAND_INJECT_PING:
+			SpawnAndPing(buffer, size, TRUE);
+			break;
+		case COMMAND_INJECTX64_PING:
+			SpawnAndPing(buffer, size, FALSE);
+			break;
 	}
 }
 
