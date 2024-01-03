@@ -734,3 +734,12 @@ void   BeaconInjectTemporaryProcess(PROCESS_INFORMATION* pInfo, char* payload, i
 {
 	BeaconInjectProcessInternal(pInfo, pInfo->hProcess, pInfo->dwProcessId, payload, p_len, p_offset, arg, a_len);
 }
+
+void BeaconCleanupProcess(PROCESS_INFORMATION* pInfo)
+{
+	if (pInfo->hProcess)
+		CloseHandle(pInfo->hProcess);
+
+	if (pInfo->hThread)
+		CloseHandle(pInfo->hThread);
+}
