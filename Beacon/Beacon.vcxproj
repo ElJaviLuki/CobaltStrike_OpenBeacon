@@ -40,6 +40,7 @@
     <ClCompile Include="identity.c" />
     <ClCompile Include="inject.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="network.c" />
     <ClCompile Include="pch.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
