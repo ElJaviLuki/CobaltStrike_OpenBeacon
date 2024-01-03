@@ -71,9 +71,6 @@
     <ClCompile Include="identity.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inject.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="spawn.c">
       <Filter>Source Files</Filter>
     </ClCompile>
