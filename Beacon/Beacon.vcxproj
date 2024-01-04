@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="argument.h" />
     <ClInclude Include="beacon.h" />
     <ClInclude Include="callback.h" />
     <ClInclude Include="command.h" />
@@ -33,6 +34,7 @@
     <ClInclude Include="spawn.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="argument.c" />
     <ClCompile Include="beacon.c" />
     <ClCompile Include="data.c" />
     <ClCompile Include="filesystem.c" />

