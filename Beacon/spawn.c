@@ -850,6 +850,10 @@ BOOL UpdateParentProcessContext(PRUN_UNDER_CONTEXT context, DWORD parentPid, LPP
 
 	return TRUE;
 }
+void CleanupParentProcessContext(PRUN_UNDER_CONTEXT context)
+{
+	CloseHandle(context->handle);
+}
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
