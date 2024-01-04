@@ -904,6 +904,12 @@ typedef struct _RUN_UNDER_CONFIG
 	int creationFlags;
 	BOOL toggleImpersonation;
 } RUN_UNDER_CONFIG;
+
+void ProcThreadAttributeListDestroy(LPVOID lpAttributeList)
+{
+	DeleteProcThreadAttributeList(lpAttributeList);
+	HeapFree(GetProcessHeap(), 0, lpAttributeList);
+}
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
