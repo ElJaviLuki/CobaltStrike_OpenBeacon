@@ -784,6 +784,21 @@ void BlockDlls(char* buffer, int length)
 	gBlockDlls = BeaconDataInt(&parser) != 0;
 }
 
+LPPROC_THREAD_ATTRIBUTE_LIST ProcThreadAttributeListInit(DWORD dwAttributeCount)
+{
+	// Initialize the process attribute list
+	SIZE_T size = 0;
+	InitializeProcThreadAttributeList(NULL, dwAttributeCount, 0, &size);
+	HANDLE processHeap = GetProcessHeap();
+	LPVOID attributeList = HeapAlloc(processHeap, 0, size);
+	if (attributeList == NULL)
+		return FALSE;
+
+	if (!InitializeProcThreadAttributeList(attributeList, dwAttributeCount, 0, &size))
+		return FALSE;
+
+	return attributeList;
+}
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
