@@ -6,7 +6,10 @@
 
 
 HANDLE gIdentityToken;
-WCHAR gIdentityDomain[20];
+BOOL gIdentityIsLoggedIn;
+WCHAR gIdentityDomain[256];
+WCHAR gIdentityUsername[256];
+WCHAR gIdentityPassword[256];
 datap* gIdentityCredentialsFormat;
 
 /**
