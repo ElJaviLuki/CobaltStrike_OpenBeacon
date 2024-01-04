@@ -775,6 +775,14 @@ void BeaconInjectProcessInternal(PROCESS_INFORMATION* processInfo, HANDLE hProce
 	}
 }
 
+BOOL gBlockDlls;
+
+void BlockDlls(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	gBlockDlls = BeaconDataInt(&parser) != 0;
+}
 
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
