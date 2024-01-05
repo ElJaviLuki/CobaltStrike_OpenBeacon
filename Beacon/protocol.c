@@ -93,7 +93,7 @@ void ProtocolSmbFlush(PROTOCOL* protocol)
 	FlushFileBuffers(protocol->channel.handle);
 }
 
-BOOL ProtocolSmbPipeWaitForData(PROTOCOL* protocol, DWORD waitTime)
+BOOL ProtocolSmbWaitForData(PROTOCOL* protocol, DWORD waitTime)
 {
 	DWORD timeout = GetTickCount() + waitTime;
 	DWORD available;
@@ -117,6 +117,6 @@ PROTOCOL* ProtocolSmbInit(PROTOCOL* protocol, HANDLE handle)
 	protocol->write = ProtocolSmbWrite;
 	protocol->close = ProtocolSmbClose;
 	protocol->flush = ProtocolSmbFlush;
-	protocol->waitForData = ProtocolSmbPipeWaitForData;
+	protocol->waitForData = ProtocolSmbWaitForData;
 	return protocol;
 }
