@@ -92,5 +92,8 @@
     <ClCompile Include="argument.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="job.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

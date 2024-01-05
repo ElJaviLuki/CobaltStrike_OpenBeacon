@@ -40,6 +40,7 @@
     <ClCompile Include="filesystem.c" />
     <ClCompile Include="format.c" />
     <ClCompile Include="identity.c" />
+    <ClCompile Include="job.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="network.c" />
     <ClCompile Include="pch.c">
