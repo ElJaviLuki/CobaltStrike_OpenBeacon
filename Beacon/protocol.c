@@ -109,3 +109,14 @@ BOOL ProtocolSmbPipeWaitForData(PROTOCOL* protocol, DWORD waitTime)
 		Sleep(10);
 	}
 }
+
+PROTOCOL* ProtocolSmbInit(PROTOCOL* protocol, HANDLE handle)
+{
+	protocol->channel.handle = handle;
+	protocol->read = ProtocolSmbRead;
+	protocol->write = ProtocolSmbWrite;
+	protocol->close = ProtocolSmbClose;
+	protocol->flush = ProtocolSmbFlush;
+	protocol->waitForData = ProtocolSmbPipeWaitForData;
+	return protocol;
+}
