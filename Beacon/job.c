@@ -20,11 +20,13 @@ typedef struct _JOB_ENTRY
 } JOB_ENTRY;
 
 
-DWORD gJobCurrentId = 0;
+
 JOB_ENTRY* gJobs = NULL;
 
 JOB_ENTRY* JobAdd(JOB_ENTRY* newJob)
 {
+	static DWORD gJobCurrentId = 0;
+
 	JOB_ENTRY* job = gJobs;
 	newJob->id = gJobCurrentId++;
 
