@@ -95,5 +95,8 @@
     <ClCompile Include="job.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="protocol.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
