@@ -72,3 +72,12 @@ HANDLE ProtocolSmbRead(PROTOCOL* protocol, char* buffer, int length)
 }
 
 
+BOOL ProtocolSmbWrite(PROTOCOL* protocol, char* buffer, int length)
+{
+	int headerSize;
+	char* header = ProtocolHeaderGet(buffer, length, &headerSize);
+	if (!ProtocolSmbPipeWrite(protocol->channel.handle, header, headerSize))
+		return FALSE;
+
+	return ProtocolSmbPipeWrite(protocol->channel.handle, buffer, length);
+}
