@@ -87,3 +87,9 @@ void ProtocolSmbClose(PROTOCOL* protocol)
 	DisconnectNamedPipe(protocol->channel.handle);
 	CloseHandle(protocol->channel.handle);
 }
+
+BOOL ProtocolSmbFlush(PROTOCOL* protocol)
+{
+	return FlushFileBuffers(protocol->channel.handle);
+}
+
