@@ -93,3 +93,19 @@ BOOL ProtocolSmbFlush(PROTOCOL* protocol)
 	return FlushFileBuffers(protocol->channel.handle);
 }
 
+BOOL ProtocolSmbPipeWaitForData(PROTOCOL* protocol, DWORD waitTime)
+{
+	DWORD timeout = GetTickCount() + waitTime;
+	DWORD available;
+
+	while (GetTickCount() < timeout)
+	{
+		if (!PeekNamedPipe(protocol->channel.handle, NULL, 0, NULL, &available, NULL))
+			return FALSE;
+
+		if (available)
+			return TRUE;
+
+		Sleep(10);
+	}
+}
