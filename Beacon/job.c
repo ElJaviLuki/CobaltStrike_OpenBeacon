@@ -19,8 +19,6 @@ typedef struct _JOB_ENTRY
 	char description[64];
 } JOB_ENTRY;
 
-
-
 JOB_ENTRY* gJobs = NULL;
 
 JOB_ENTRY* JobAdd(JOB_ENTRY* newJob)
@@ -44,4 +42,49 @@ JOB_ENTRY* JobAdd(JOB_ENTRY* newJob)
 	}
 
 	return job;
+}
+
+void JobCleanup()
+{
+	// Close handles associated with completed jobs
+	// If gJobs is not empty, iterate through the list
+	;
+	for (JOB_ENTRY* job = gJobs; job; job = job->next)
+	{
+		if (job->isDead)
+		{
+			if (!job->isPipe)
+			{
+				CloseHandle(job->process);
+				CloseHandle(job->thread);
+				CloseHandle(job->hRead);
+				CloseHandle(job->hWrite);
+			} else
+			{
+				DisconnectNamedPipe(job->hRead);
+				CloseHandle(job->hRead);
+			}
+		}
+	}
+
+	JOB_ENTRY* prev = NULL;
+	JOB_ENTRY** pNext;
+	for (JOB_ENTRY* job = gJobs; job; job = *pNext)
+	{
+		if (!job->isDead)
+		{
+			prev = job;
+			pNext = &job->next;
+			continue;
+		}
+
+		if (prev)
+			pNext = &prev->next;
+		else
+			pNext = &gJobs;
+
+		*pNext = job->next;
+		free(job);
+	}
+
 }
