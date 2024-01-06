@@ -101,5 +101,8 @@
     <ClCompile Include="protocol.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="link.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
