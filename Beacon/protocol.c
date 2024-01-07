@@ -4,26 +4,22 @@
 
 #include "beacon.h"
 
-
-
 int ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
 {
-	int totalRead = 0;
-
-	if (length <= 0)
+	int read, totalRead;
+	for(totalRead = 0; totalRead < length; totalRead += read)
 	{
-		if (totalRead != length)
-			totalRead = -1;
+		if (!ReadFile(channel, buffer + totalRead, length - totalRead, &read, NULL))
+			return -1;
 
-		return totalRead;
+		if (read == 0)
+			return -1;
 	}
 
-	int read = 0;
-	while (ReadFile(channel, &buffer[totalRead], length - totalRead, &read, NULL) && !read && totalRead < length) {
-		totalRead += read;
-	}
+	if (totalRead != length)
+		return -1;
 
-	return -1;
+	return totalRead;
 }
 
 BOOL ProtocolSmbPipeWrite(HANDLE hFile, char* buffer, int length)
