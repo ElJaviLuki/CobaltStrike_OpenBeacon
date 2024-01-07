@@ -60,6 +60,14 @@ BOOL ProtocolSmbPipeWrite(HANDLE hFile, char* buffer, int length)
     return TRUE;
 }
 
+BOOL ProtocolTcpSocketWrite(SOCKET channel, char* buffer, int length)
+{
+	if(length == 0)
+		return TRUE;
+
+	return send(channel, buffer, length, 0) != SOCKET_ERROR;
+}
+
 char* ProtocolHeaderGet(char* setting, int headerSize, int* pHeaderLength)
 {
 	datap parser;
