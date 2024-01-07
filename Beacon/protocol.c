@@ -109,6 +109,16 @@ int ProtocolTcpRead(PROTOCOL* protocol, char* buffer, int length)
 	return ProtocolTcpSocketRead(protocol->channel.socket, buffer, dataSize);
 }
 
+BOOL ProtocolTcpWrite(PROTOCOL* protocol, char* buffer, int length)
+{
+	int headerSize;
+	char* header = ProtocolHeaderGet(buffer, length, &headerSize);
+	if (!ProtocolTcpSocketWrite(protocol->channel.socket, header, headerSize))
+		return FALSE;
+
+	return ProtocolTcpSocketWrite(protocol->channel.socket, buffer, length);
+}
+
 BOOL ProtocolSmbWrite(PROTOCOL* protocol, char* buffer, int length)
 {
 	int headerSize;
