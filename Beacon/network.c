@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "network.h"
+
 BOOL gNetworkIsInit = FALSE;
 
 void NetworkInit(void)

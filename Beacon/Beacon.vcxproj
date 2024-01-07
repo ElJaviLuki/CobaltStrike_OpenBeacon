@@ -28,6 +28,7 @@
     <ClInclude Include="identity.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="macros.h" />
+    <ClInclude Include="network.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="self.h" />

