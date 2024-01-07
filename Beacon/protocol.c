@@ -86,6 +86,20 @@ int ProtocolSmbRead(PROTOCOL* protocol, char* buffer, int length)
 	return ProtocolSmbPipeRead(protocol->channel.handle, buffer, dataSize);
 }
 
+int ProtocolTcpRead(PROTOCOL* protocol, char* buffer, int length)
+{
+	int headerSize;
+	char* header = ProtocolHeaderGet(buffer, 0, &headerSize);
+	int totalHeaderRead = ProtocolTcpSocketRead(protocol->channel.socket, header, headerSize);
+	if (totalHeaderRead == -1 || totalHeaderRead != headerSize)
+		return -1;
+
+	int dataSize = *(int*)(header + headerSize - sizeof(int));
+	if (dataSize < 0 || dataSize > length)
+		return -1;
+
+	return ProtocolTcpSocketRead(protocol->channel.socket, buffer, dataSize);
+}
 
 BOOL ProtocolSmbWrite(PROTOCOL* protocol, char* buffer, int length)
 {

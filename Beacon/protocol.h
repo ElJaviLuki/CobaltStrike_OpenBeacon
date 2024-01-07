@@ -2,6 +2,7 @@
 
 typedef union _CHANNEL {
 	HANDLE handle;
+	SOCKET socket;
 } CHANNEL;
 
 typedef struct _PROTOCOL {
