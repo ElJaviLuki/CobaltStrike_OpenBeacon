@@ -22,6 +22,25 @@ int ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
 	return totalRead;
 }
 
+int ProtocolTcpSocketRead(SOCKET channel, char* buffer, int length)
+{
+	int read, totalRead;
+	for (totalRead = 0; totalRead < length; totalRead += read)
+	{
+		read = recv(channel, buffer + totalRead, length - totalRead, 0);
+		if (read == SOCKET_ERROR)
+			return -1;
+
+		if (read == 0)
+			break;
+	}
+
+	if (totalRead != length)
+		return -1;
+
+	return totalRead;
+}
+
 BOOL ProtocolSmbPipeWrite(HANDLE hFile, char* buffer, int length)
 {
     DWORD wrote;
