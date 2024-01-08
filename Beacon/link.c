@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "link.h"
+
 #include "beacon.h"
 #include "network.h"
 #include "protocol.h"

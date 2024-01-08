@@ -26,6 +26,7 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="identity.h" />
+    <ClInclude Include="link.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="macros.h" />
     <ClInclude Include="network.h" />

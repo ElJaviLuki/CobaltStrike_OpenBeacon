@@ -28,6 +28,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_BLOCKDLLS:
 			BlockDlls(buffer, size);
 			break;
+		case COMMAND_TCP_CONNECT:
+			LinkViaTcp(buffer, size);
+			break;
 	}
 }
 
