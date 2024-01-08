@@ -164,6 +164,41 @@ BOOL ProtocolSmbWaitForData(PROTOCOL* protocol, DWORD waitTime)
 	}
 }
 
+BOOL ProtocolTcpWaitForData(PROTOCOL* protocol, DWORD waitTime)
+{
+	int timeout = GetTickCount() + waitTime;
+	int argp = 1;
+	
+	if (ioctlsocket(protocol->channel.socket, FIONREAD, &argp) == SOCKET_ERROR)
+		return FALSE;
+
+	BOOL result = FALSE;
+	while (GetTickCount() < timeout)
+	{
+		char buf[1];
+		int received = recv(protocol->channel.socket, buf, sizeof(char), MSG_PEEK);
+		if(!received)
+			break;
+
+		if(received > 0)
+		{
+			result = TRUE;
+			break;
+		}
+
+		if (WSAGetLastError() != WSAEWOULDBLOCK)
+			break;
+
+		Sleep(10);
+	}
+
+	argp = 0;
+	if (ioctlsocket(protocol->channel.socket, FIONREAD, &argp) == SOCKET_ERROR)
+		return FALSE;
+
+	return result;
+}
+
 PROTOCOL* ProtocolSmbInit(PROTOCOL* protocol, HANDLE handle)
 {
 	protocol->channel.handle = handle;
