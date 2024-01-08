@@ -130,6 +130,12 @@ BOOL ProtocolSmbWrite(PROTOCOL* protocol, char* buffer, int length)
 	return ProtocolSmbPipeWrite(protocol->channel.handle, buffer, length);
 }
 
+void ProtocolTcpClose(PROTOCOL* protocol)
+{
+	shutdown(protocol->channel.socket, SD_BOTH);
+	closesocket(protocol->channel.socket);
+}
+
 void ProtocolSmbClose(PROTOCOL* protocol)
 {
 	DisconnectNamedPipe(protocol->channel.handle);
