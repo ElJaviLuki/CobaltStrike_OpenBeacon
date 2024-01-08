@@ -15,3 +15,5 @@ typedef struct _PROTOCOL {
 } PROTOCOL;
 
 PROTOCOL* ProtocolTcpInit(PROTOCOL* protocol, SOCKET socket);
+
+void ProtocolSmbOpenExplicit(char* data);

