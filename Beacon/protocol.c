@@ -209,3 +209,14 @@ PROTOCOL* ProtocolSmbInit(PROTOCOL* protocol, HANDLE handle)
 	protocol->waitForData = ProtocolSmbWaitForData;
 	return protocol;
 }
+
+PROTOCOL* ProtocolTcpInit(PROTOCOL* protocol, SOCKET socket)
+{
+	protocol->channel.socket = socket;
+	protocol->read = ProtocolTcpRead;
+	protocol->write = ProtocolTcpWrite;
+	protocol->close = ProtocolTcpClose;
+	protocol->flush = NULL;
+	protocol->waitForData = ProtocolTcpWaitForData;
+	return protocol;
+}
