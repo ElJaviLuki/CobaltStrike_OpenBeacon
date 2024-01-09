@@ -35,6 +35,7 @@
     <ClInclude Include="self.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="spawn.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="argument.c" />
@@ -57,6 +58,7 @@
     <ClCompile Include="self.c" />
     <ClCompile Include="spawn.c" />
     <ClCompile Include="task.c" />
+    <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libtomcrypt\libtomcrypt_VS2008.vcxproj">

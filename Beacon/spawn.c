@@ -12,6 +12,7 @@
 #include "argument.h"
 #include "beacon.h"
 #include "identity.h"
+#include "utils.h"
 
 void Spawn(char* data, int size, BOOL x86, BOOL ignoreToken)
 {
@@ -56,19 +57,6 @@ void SpawnAndPing(char* data, int size, BOOL x86)
 
 	port = htons(port);
 	BeaconOutput(CALLBACK_PING, (char*)&port, sizeof(port));
-}
-
-DWORD ExpandEnvironmentStrings_s(const char* lpSrc, char* lpDst, size_t size) {
-	// determine the size of the buffer required to store the expanded string
-	DWORD nSize = ExpandEnvironmentStringsA(lpSrc, NULL, 0);
-
-	// if the size of the buffer is too small, return 0
-	if (nSize == 0 || size <= nSize + 1) {
-		return 0;
-	}
-
-	// expand the string
-	return ExpandEnvironmentStringsA(lpSrc, lpDst, size);
 }
 
 char* gSpawnToX86 = NULL;
