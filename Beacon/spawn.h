@@ -3,3 +3,5 @@
 void SpawnAndPing(char* data, int size, BOOL x86);
 
 void BlockDlls(char* buffer, int length);
+
+void Execute(char* buffer, int length);
