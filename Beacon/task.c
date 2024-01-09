@@ -58,6 +58,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_ARGUE_LIST:
 			ArgumentList();
 			break;
+		case COMMAND_PWD:
+			FilesystemPwd();
+			break;
 	}
 }
 
