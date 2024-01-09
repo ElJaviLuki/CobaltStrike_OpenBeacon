@@ -148,7 +148,7 @@ void ProtocolSmbFlush(PROTOCOL* protocol)
 	FlushFileBuffers(protocol->channel.handle);
 }
 
-BOOL ProtocolSmbWaitForData(PROTOCOL* protocol, DWORD waitTime)
+BOOL ProtocolSmbWaitForData(PROTOCOL* protocol, DWORD waitTime, int iterWaitTime)
 {
 	DWORD timeout = GetTickCount() + waitTime;
 	DWORD available;
@@ -161,11 +161,11 @@ BOOL ProtocolSmbWaitForData(PROTOCOL* protocol, DWORD waitTime)
 		if (available)
 			return TRUE;
 
-		Sleep(10);
+		Sleep(iterWaitTime);
 	}
 }
 
-BOOL ProtocolTcpWaitForData(PROTOCOL* protocol, DWORD waitTime)
+BOOL ProtocolTcpWaitForData(PROTOCOL* protocol, DWORD waitTime, int iterWaitTime)
 {
 	int timeout = GetTickCount() + waitTime;
 	int argp = 1;
@@ -190,7 +190,7 @@ BOOL ProtocolTcpWaitForData(PROTOCOL* protocol, DWORD waitTime)
 		if (WSAGetLastError() != WSAEWOULDBLOCK)
 			break;
 
-		Sleep(10);
+		Sleep(iterWaitTime);
 	}
 
 	argp = 0;

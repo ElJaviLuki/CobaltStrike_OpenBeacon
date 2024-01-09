@@ -21,7 +21,7 @@ LINK_ENTRY gLinks[28] = { 0 };
 BOOL LinkAdd(PROTOCOL* protocol, int flags)
 {
 	char buffer[256] = { 0 };
-	if (!protocol->waitForData(protocol, 30000))
+	if (!protocol->waitForData(protocol, 30000, 10))
 		return FALSE;
 
 	int read = protocol->read(protocol, buffer, sizeof(buffer));

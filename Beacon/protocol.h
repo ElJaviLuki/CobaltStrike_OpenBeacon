@@ -11,7 +11,7 @@ typedef struct _PROTOCOL {
 	BOOL (*write)(struct _PROTOCOL*, char*, int);
 	void (*close)(struct _PROTOCOL*);
 	void (*flush)(struct _PROTOCOL*);
-	BOOL (*waitForData)(struct _PROTOCOL*, int);
+	BOOL (*waitForData)(struct _PROTOCOL*, int, int);
 } PROTOCOL;
 
 PROTOCOL* ProtocolTcpInit(PROTOCOL* protocol, SOCKET socket);
