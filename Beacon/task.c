@@ -61,6 +61,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_PWD:
 			FilesystemPwd();
 			break;
+		case COMMAND_RUNAS:
+			RunAsUser(buffer, size);
+			break;
 	}
 }
 
