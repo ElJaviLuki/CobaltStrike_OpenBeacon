@@ -55,6 +55,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_ARGUE_REMOVE:
 			ArgumentRemove(buffer, size);
 			break;
+		case COMMAND_ARGUE_LIST:
+			ArgumentList();
+			break;
 	}
 }
 
