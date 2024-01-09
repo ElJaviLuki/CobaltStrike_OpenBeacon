@@ -101,3 +101,22 @@ void ArgumentRemove(char* buffer, int length)
 	}
 	free(expanded);
 }
+
+void ArgumentList()
+{
+	formatp format;
+	BeaconFormatAlloc(&format, 0x8000);
+	for (ARGUMENT_ENTRY* current = gArguments; current != NULL; current = current->next)
+	{
+		if (current->isActive)
+		{
+			BeaconFormatPrintf(&format, "%s\n", current->expandedFullCmd);
+		}
+	}
+
+	int size = BeaconDataLength(&format);
+	char* buffer = BeaconDataOriginal(&format);
+	BeaconOutput(CALLBACK_OUTPUT, buffer, size);
+
+	BeaconFormatFree(&format);
+}
