@@ -13,3 +13,5 @@ extern WCHAR* gIdentityPassword;
 
 void IdentityConditionalRevert(BOOL ignoreToken);
 void IdentityConditionalImpersonate(BOOL ignoreToken);
+
+void IdentityLoginUser(char* buffer, int length);
