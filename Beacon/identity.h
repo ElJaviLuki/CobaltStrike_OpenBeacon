@@ -11,6 +11,9 @@ extern WCHAR* gIdentityDomain;
 extern WCHAR* gIdentityUsername;
 extern WCHAR* gIdentityPassword;
 
+void IdentityRevertToken(void);
+void IdentityImpersonateToken(void);
+
 void IdentityConditionalRevert(BOOL ignoreToken);
 void IdentityConditionalImpersonate(BOOL ignoreToken);
 

