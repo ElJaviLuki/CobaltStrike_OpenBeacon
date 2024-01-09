@@ -39,6 +39,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_LOGINUSER:
 			IdentityLoginUser(buffer, size);
 			break;
+		case COMMAND_PAUSE:
+			Pause(buffer, size);
+			break;
 	}
 }
 
