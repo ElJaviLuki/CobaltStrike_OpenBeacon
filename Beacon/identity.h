@@ -2,9 +2,14 @@
 
 extern HANDLE gIdentityToken;
 extern BOOL gIdentityIsLoggedIn;
-extern WCHAR gIdentityDomain[256];
-extern WCHAR gIdentityUsername[256];
-extern WCHAR gIdentityPassword[256];
+
+#define IDENTITY_MAX_WCHARS_DOMAIN 256
+#define IDENTITY_MAX_WCHARS_USERNAME 256
+#define IDENTITY_MAX_WCHARS_PASSWORD 512
+
+extern WCHAR* gIdentityDomain;
+extern WCHAR* gIdentityUsername;
+extern WCHAR* gIdentityPassword;
 
 void IdentityConditionalRevert(BOOL ignoreToken);
 void IdentityConditionalImpersonate(BOOL ignoreToken);

