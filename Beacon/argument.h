@@ -7,3 +7,4 @@ typedef struct _EXPANDED_CMD
 } EXPANDED_CMD;
 
 BOOL ArgumentFindMatch(EXPANDED_CMD* extendedCmd, const char* cmd);
+void ArgumentAdd(char* buffer, int length);
