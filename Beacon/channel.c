@@ -81,3 +81,9 @@ void ChannelAdd(SOCKET socket, int id, int timeoutPeriod, int type, int port, in
 
 	gChannels = newChannel;
 }
+
+int gChannelIdCount = 0;
+long long ChannelGetId()
+{
+	return 0x4000000 + gChannelIdCount++ % 0x4000000;
+}
