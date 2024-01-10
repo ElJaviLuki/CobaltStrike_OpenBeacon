@@ -34,11 +34,8 @@ BOOL PipeConnect(LPCSTR lpFileName, HANDLE* pipe, DWORD flags)
 	}
 }
 
-int PipeConnectWithToken(LPCSTR filename, HANDLE* pipe, DWORD flags)
+int PipeConnectWithTokenNoFlags(LPCSTR filename, HANDLE* pipe)
 {
-	if (flags)
-		return PipeConnect(filename, pipe, flags);
-
 	if (PipeConnect(filename, pipe, 0))
 		return TRUE;
 
@@ -46,10 +43,19 @@ int PipeConnectWithToken(LPCSTR filename, HANDLE* pipe, DWORD flags)
 	DWORD lastError = GetLastError();
 	if(lastError == ERROR_ACCESS_DENIED)
 	{
+		LWARNING("Could not do PipeConnect. Retrying with Revert/Impersonate");
 		IdentityRevertToken();
 		result = PipeConnect(filename, pipe, 0);
 		IdentityImpersonateToken();
 	}
 
 	return result;
+}
+
+int PipeConnectWithToken(LPCSTR filename, HANDLE* pipe, DWORD flags)
+{
+	if (flags)
+		return PipeConnect(filename, pipe, flags);
+
+	return PipeConnectWithTokenNoFlags(filename, pipe);
 }
