@@ -1425,3 +1425,16 @@ void SpawnUnder(char* buffer, int length, BOOL x86)
 		BeaconCleanupProcess(&pi);
 	}
 }
+
+BOOL RunIsSameSessionAsCurrent(int pid)
+{
+	int sessionId;
+	if (!ProcessIdToSessionId(pid, &sessionId))
+		return TRUE;
+
+	int currentSessionId;
+	if (!ProcessIdToSessionId(GetCurrentProcessId(), &currentSessionId))
+		return TRUE;
+
+	return sessionId == currentSessionId;
+}
