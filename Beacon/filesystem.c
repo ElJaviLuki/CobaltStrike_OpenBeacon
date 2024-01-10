@@ -61,3 +61,27 @@ void FilesystemMove(char* buffer, int length)
 
 	BeaconDataFree(locals);
 }
+
+void FilesystemCopy(char* buffer, int length)
+{
+#define MAX_EXISTING_FILENAME 0x2000
+#define MAX_NEW_FILENAME 0x2000
+	datap* locals = BeaconDataAlloc(MAX_EXISTING_FILENAME + MAX_NEW_FILENAME);
+	char* existingFileName = BeaconDataPtr(locals, MAX_EXISTING_FILENAME);
+	char* newFileName = BeaconDataPtr(locals, MAX_NEW_FILENAME);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	BeaconDataStringCopySafe(&parser, existingFileName, MAX_EXISTING_FILENAME);
+	BeaconDataStringCopySafe(&parser, newFileName, MAX_NEW_FILENAME);
+
+	// Copy the file
+	if (!CopyFileA(existingFileName, newFileName, FALSE))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Copy failed: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_COPY_FAILED, lastError);
+	}
+
+	BeaconDataFree(locals);
+}
