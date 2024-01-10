@@ -72,6 +72,9 @@
     <ClInclude Include="job.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="channel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
