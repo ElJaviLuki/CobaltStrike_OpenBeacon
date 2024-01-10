@@ -11,3 +11,5 @@ void RunAsUser(char* buffer, int length);
 void RunSetParentPid(char* buffer, int length);
 
 void RunUnderPid(char* buffer, int length);
+
+void SpawnUnder(char* buffer, int length, BOOL x86);
