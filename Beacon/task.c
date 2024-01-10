@@ -138,6 +138,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_PIPE_REOPEN:
 			PipeReopen(buffer, size);
 			break;
+		case COMMAND_PIPE_CLOSE:
+			PipeClose(buffer, size);
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;
