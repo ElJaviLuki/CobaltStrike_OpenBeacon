@@ -178,3 +178,8 @@ void FilesystemList(char* buffer, int length)
 	free(filename);
 	BeaconFormatFree(&locals);
 }
+
+BOOL FilesystemIsDirectory(char* filename)
+{
+	return GetFileAttributesA(filename) & FILE_ATTRIBUTE_DIRECTORY;
+}
