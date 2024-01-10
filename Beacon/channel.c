@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "network.h"
+
 typedef struct _CHANNEL_ENTRY
 {
 	int id;
@@ -27,4 +29,31 @@ BOOL ChannelIsBindValid(short port)
 		}
 	}
 	return FALSE;
+}
+
+SOCKET ChannelSocketCreateAndBind(const int addr, const short port, const int backlog)
+{
+	NetworkInit();
+
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_HOPOPTS);
+	if(sock == INVALID_SOCKET)
+	{
+		return INVALID_SOCKET;
+	}
+
+	struct sockaddr_in sockaddr;
+	sockaddr.sin_family = AF_INET;
+	sockaddr.sin_addr.s_addr = addr;
+	sockaddr.sin_port = htons(port);
+
+	int argp = 1; // 1 = non-blocking
+	if(ioctlsocket(sock, FIONBIO, &argp) == SOCKET_ERROR
+		|| bind(sock, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) == SOCKET_ERROR
+		|| listen(sock, backlog) == SOCKET_ERROR)
+	{
+		closesocket(sock);
+		return INVALID_SOCKET;
+	}
+
+	return sock;
 }
