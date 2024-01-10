@@ -29,9 +29,11 @@ BOOL LinkAdd(PROTOCOL* protocol, int flags)
 	if (read < 0)
 		return FALSE;
 
-	int bid = *(int*)buffer;
+	datap parser;
+	BeaconDataParse(&parser, buffer, read);
+	int bid = BeaconDataInt(&parser);
 	LINK_ENTRY* openLink = NULL;
-	for(int i = 0; i < sizeof(gLinks)/sizeof(gLinks[0]); i++)
+	for(int i = 0; i < MAX_LINKS; i++)
 	{
 		if (gLinks[i].isOpen)
 		{
@@ -51,19 +53,22 @@ BOOL LinkAdd(PROTOCOL* protocol, int flags)
 	openLink->protocol = *protocol;
 	openLink->isOpen = TRUE;
 
+#define MAX_CALLBACK_DATA 0x100
 	if ( openLink->callbackData == NULL )
 	{
-		openLink->callbackData = malloc(0x100);
+		openLink->callbackData = malloc(MAX_CALLBACK_DATA);
 
 		if (openLink->callbackData == NULL)
 			return FALSE;
 	}
 
 	formatp format;
-	BeaconFormatUse(&format, openLink->callbackData, 0x100);
+	BeaconFormatUse(&format, openLink->callbackData, MAX_CALLBACK_DATA);
 	BeaconFormatInt(&format, bid);
 	BeaconFormatInt(&format, flags);
-	BeaconFormatAppend(&format, buffer + sizeof(int), read - sizeof(int));
+
+	char* buf = BeaconDataBuffer(&parser);
+	BeaconFormatAppend(&format, buf, read - sizeof(int));
 
 	openLink->callbackLength = BeaconDataLength(&format);
 	BeaconOutput(CALLBACK_PIPE_OPEN, openLink->callbackData, openLink->callbackLength);
