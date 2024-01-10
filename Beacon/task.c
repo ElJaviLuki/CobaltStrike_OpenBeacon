@@ -90,6 +90,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_LISTEN:
 			ChannelListen(buffer, size);
 			break;
+		case COMMAND_LSOCKET_TCPPIVOT:
+			ChannelLSocketTcpPivot(buffer, size);
+			break;
 	}
 }
 
