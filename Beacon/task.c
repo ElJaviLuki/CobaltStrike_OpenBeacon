@@ -74,6 +74,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			FilesystemList(buffer, size);
 			break;
 
+		case COMMAND_TOKEN_GETUID:
+			IdentityGetUid();
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;

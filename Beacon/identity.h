@@ -18,3 +18,4 @@ void IdentityConditionalRevert(BOOL ignoreToken);
 void IdentityConditionalImpersonate(BOOL ignoreToken);
 
 void IdentityLoginUser(char* buffer, int length);
+void IdentityGetUid(void);
