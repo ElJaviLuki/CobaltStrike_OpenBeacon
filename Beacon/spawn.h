@@ -17,3 +17,5 @@ void SpawnUnder(char* buffer, int length, BOOL x86);
 void SpawnAsUser(char* buffer, int length, BOOL x86);
 
 void SpawnSetTo(char* buffer, int length, BOOL x86);
+
+void Spawn(char* data, int size, BOOL x86, BOOL ignoreToken);
