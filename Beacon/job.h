@@ -2,3 +2,4 @@
 
 void JobSpawn(char* buffer, int size, BOOL x86, BOOL ignoreToken);
 void JobRegister(char* buffer, int size, BOOL impersonate, BOOL isMsgMode);
+void JobKill(char* buffer, int size);
