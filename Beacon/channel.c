@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "beacon.h"
 #include "network.h"
 
 typedef struct _CHANNEL_ENTRY
@@ -56,4 +57,27 @@ SOCKET ChannelSocketCreateAndBind(const int addr, const short port, const int ba
 	}
 
 	return sock;
+}
+
+void ChannelAdd(SOCKET socket, int id, int timeoutPeriod, int type, int port, int state)
+{
+	CHANNEL_ENTRY* newChannel = malloc(sizeof(CHANNEL_ENTRY));
+	*newChannel = (CHANNEL_ENTRY){
+		.id = id,
+		.socket = (HANDLE)socket,
+		.state = state,
+		.lastActive = 0,
+		.creationTime = GetTickCount(),
+		.timeoutPeriod = timeoutPeriod,
+		.port = port,
+		.type = type,
+		.next = gChannels
+	};
+
+	
+	for (CHANNEL_ENTRY* ch = gChannels; ch; ch = (CHANNEL_ENTRY*)ch->next)
+		if (ch->id == id)
+			ch->state = 0;
+
+	gChannels = newChannel;
 }
