@@ -67,6 +67,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_JOB_KILL:
 			JobKill(buffer, size);
 			break;
+		case COMMAND_JOBS:
+			JobPrintAll();
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;
