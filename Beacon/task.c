@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "job.h"
 #include "argument.h"
 #include "beacon.h"
 #include "command.h"
@@ -63,6 +64,18 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_RUNAS:
 			RunAsUser(buffer, size);
+			break;
+		case COMMAND_JOB_SPAWN_X86:
+			JobSpawn(buffer, size, TRUE, TRUE);
+			break;
+		case COMMAND_JOB_SPAWN_X64:
+			JobSpawn(buffer, size, FALSE, TRUE);
+			break;
+		case COMMAND_JOB_SPAWN_TOKEN_X86:
+			JobSpawn(buffer, size, TRUE, FALSE);
+			break;
+		case COMMAND_JOB_SPAWN_TOKEN_X64:
+			JobSpawn(buffer, size, FALSE, FALSE);
 			break;
 	}
 }
