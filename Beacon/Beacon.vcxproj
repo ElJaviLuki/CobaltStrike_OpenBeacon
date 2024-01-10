@@ -31,6 +31,7 @@
     <ClInclude Include="macros.h" />
     <ClInclude Include="network.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="pipe.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="self.h" />
     <ClInclude Include="settings.h" />

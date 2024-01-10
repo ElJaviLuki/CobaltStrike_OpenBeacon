@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "pipe.h"
+
 #include "identity.h"
 
 BOOL PipeConnect(LPCSTR lpFileName, HANDLE* pipe, DWORD flags)
@@ -58,4 +60,27 @@ int PipeConnectWithToken(LPCSTR filename, HANDLE* pipe, DWORD flags)
 		return PipeConnect(filename, pipe, flags);
 
 	return PipeConnectWithTokenNoFlags(filename, pipe);
+}
+
+BOOL PipeWaitForData(HANDLE hNamedPipe, DWORD waitTime, int iterWaitTime)
+{
+	DWORD timeout = GetTickCount() + waitTime;
+	DWORD available;
+
+	while (GetTickCount() < timeout)
+	{
+		if (!PeekNamedPipe(hNamedPipe, NULL, 0, NULL, &available, NULL))
+		{
+			return FALSE;
+		}
+
+		if (available)
+		{
+			return TRUE;
+		}
+
+		Sleep(iterWaitTime);
+	}
+
+	return FALSE;
 }

