@@ -3,3 +3,4 @@
 void FilesystemCd(char* buffer, int length);
 void FilesystemPwd();
 void FilesystemMkdir(char* buffer, int length);
+void FilesystemDrives(char* buffer, int length);

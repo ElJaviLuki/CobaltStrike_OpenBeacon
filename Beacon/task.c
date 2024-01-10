@@ -42,6 +42,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_SPAWN_PROC_X86:
 			SpawnSetTo(buffer, size, TRUE);
 			break;
+		case COMMAND_FILE_DRIVES:
+			FilesystemDrives(buffer, size);
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;
