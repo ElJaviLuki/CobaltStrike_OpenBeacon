@@ -25,3 +25,15 @@ void FilesystemPwd()
 		return;
 	BeaconOutput(CALLBACK_PWD, data, length);
 }
+
+void FilesystemMkdir(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	char* path = BeaconDataStringPointerCopy(&parser, 0x4000);
+
+	// Create the directory
+	CreateDirectoryA(path, NULL);
+
+	free(path);
+}
