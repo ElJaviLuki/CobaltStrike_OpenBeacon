@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "identity.h"
+
 BOOL PipeConnect(LPCSTR lpFileName, HANDLE* pipe, DWORD flags)
 {
 	while(TRUE)
@@ -30,4 +32,24 @@ BOOL PipeConnect(LPCSTR lpFileName, HANDLE* pipe, DWORD flags)
 			return FALSE;
 		}
 	}
+}
+
+int PipeConnectWithToken(LPCSTR filename, HANDLE* pipe, DWORD flags)
+{
+	if (flags)
+		return PipeConnect(filename, pipe, flags);
+
+	if (PipeConnect(filename, pipe, 0))
+		return TRUE;
+
+	BOOL result = FALSE;
+	DWORD lastError = GetLastError();
+	if(lastError == ERROR_ACCESS_DENIED)
+	{
+		IdentityRevertToken();
+		result = PipeConnect(filename, pipe, 0);
+		IdentityImpersonateToken();
+	}
+
+	return result;
 }
