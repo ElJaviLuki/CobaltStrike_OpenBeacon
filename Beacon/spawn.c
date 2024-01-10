@@ -1478,3 +1478,40 @@ void RunSetParentPid(char* buffer, int length)
 		BeaconErrorD(ERROR_PARENT_PROCESS_NOT_IN_SAME_SESSION, gParentPid);
 	}
 }
+
+void SpawnSetTo(char* buffer, int length, BOOL x86)
+{
+	if(!gSpawnToX86 || !gSpawnToX64)
+	{
+#define MAX_SPAWN_TO 256
+#define MAX_SPAWN_TO_X86 MAX_SPAWN_TO
+#define MAX_SPAWN_TO_X64 MAX_SPAWN_TO
+		datap* parser = BeaconDataAlloc(MAX_SPAWN_TO_X86 + MAX_SPAWN_TO_X64);
+		gSpawnToX86 = BeaconDataPtr(parser, MAX_SPAWN_TO_X86);
+		gSpawnToX64 = BeaconDataPtr(parser, MAX_SPAWN_TO_X64);
+	}
+
+	if(length != 0 && length <= 256)
+	{
+		char* dst;
+		int size;
+		if(x86)
+		{
+			dst = gSpawnToX86;
+			size = MAX_SPAWN_TO_X86;
+			
+		}
+		else
+		{
+			dst = gSpawnToX64;
+			size = MAX_SPAWN_TO_X64;
+		}
+
+		memset(dst, 0, size);
+		memcpy(dst, buffer, length);
+	} else
+	{
+		memset(gSpawnToX86, 0, MAX_SPAWN_TO_X86);
+		memset(gSpawnToX64, 0, MAX_SPAWN_TO_X64);
+	}
+}
