@@ -42,6 +42,7 @@
   <ItemGroup>
     <ClCompile Include="argument.c" />
     <ClCompile Include="beacon.c" />
+    <ClCompile Include="channel.c" />
     <ClCompile Include="data.c" />
     <ClCompile Include="filesystem.c" />
     <ClCompile Include="format.c" />
