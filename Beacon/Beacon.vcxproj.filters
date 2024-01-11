@@ -75,6 +75,9 @@
     <ClInclude Include="channel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="download.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -129,6 +132,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="channel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="download.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

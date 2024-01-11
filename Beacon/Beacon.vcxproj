@@ -24,6 +24,7 @@
     <ClInclude Include="callback.h" />
     <ClInclude Include="channel.h" />
     <ClInclude Include="command.h" />
+    <ClInclude Include="download.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="identity.h" />
@@ -45,6 +46,7 @@
     <ClCompile Include="beacon.c" />
     <ClCompile Include="channel.c" />
     <ClCompile Include="data.c" />
+    <ClCompile Include="download.c" />
     <ClCompile Include="filesystem.c" />
     <ClCompile Include="format.c" />
     <ClCompile Include="identity.c" />
