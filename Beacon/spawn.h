@@ -21,3 +21,5 @@ void SpawnSetTo(char* buffer, int length, BOOL x86);
 void Spawn(char* data, int size, BOOL x86, BOOL ignoreToken);
 
 void InjectIntoPidAndPing(char* buffer, int length, BOOL x86);
+
+BOOL RunUnderParent(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_INFORMATION* processInfo, int creationFlags, BOOL ignoreToken);
