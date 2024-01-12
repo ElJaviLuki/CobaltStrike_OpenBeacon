@@ -88,6 +88,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_JOB_REGISTER_MSGMODE:
 			JobRegister(buffer, size, FALSE, TRUE);
 			break;
+		case COMMAND_EXECUTE_JOB:
+			JobExecute(buffer, size);
+			break;
 		case COMMAND_RUN_UNDER_PID:
 			RunUnderPid(buffer, size);
 			break;
