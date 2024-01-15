@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="api.h" />
     <ClInclude Include="argument.h" />
     <ClInclude Include="beacon.h" />
     <ClInclude Include="callback.h" />
