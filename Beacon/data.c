@@ -144,18 +144,20 @@ int BeaconDataLength(datap* parser)
 	return parser->length;
 }
 
-void BeaconDataSizedBuffer(datap* parser, sizedbuf* sb)
+char* BeaconDataLengthAndString(datap* parser, sizedbuf* sb)
 {
 	int size = BeaconDataInt(parser);
 	char* data = BeaconDataPtr(parser, size);
 
 	*sb = (sizedbuf){ data, size };
+
+	return sb->buffer;
 }
 
 char* BeaconDataExtract(datap* parser, int* size)
 {
 	sizedbuf sb;
-	BeaconDataSizedBuffer(parser, &sb);
+	BeaconDataLengthAndString(parser, &sb);
 
 	if (size)
 		*size = sb.size;

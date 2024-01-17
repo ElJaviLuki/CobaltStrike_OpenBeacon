@@ -50,7 +50,7 @@ int     BeaconDataStringCopy(datap* parser, char* buffer, int size);
 char*   BeaconDataOriginal(datap* parser);
 char*   BeaconDataBuffer(datap* parser);
 int     BeaconDataLength(datap * parser);
-void    BeaconDataSizedBuffer(datap * parser, sizedbuf* sb);
+char*    BeaconDataLengthAndString(datap * parser, sizedbuf* sb);
 char *  BeaconDataExtract(datap * parser, int * size);
 void    BeaconDataZero(datap * parser);
 

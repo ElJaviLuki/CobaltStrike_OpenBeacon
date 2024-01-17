@@ -81,6 +81,9 @@
     <ClInclude Include="api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inline_execute_object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -138,6 +141,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="download.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inline_execute_object.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="api.c">

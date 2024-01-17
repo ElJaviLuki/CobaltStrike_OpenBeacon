@@ -29,6 +29,7 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="identity.h" />
+    <ClInclude Include="inline_execute_object.h" />
     <ClInclude Include="job.h" />
     <ClInclude Include="link.h" />
     <ClInclude Include="logger.h" />
@@ -52,6 +53,7 @@
     <ClCompile Include="filesystem.c" />
     <ClCompile Include="format.c" />
     <ClCompile Include="identity.c" />
+    <ClCompile Include="inline_execute_object.c" />
     <ClCompile Include="job.c" />
     <ClCompile Include="link.c" />
     <ClCompile Include="main.c" />
