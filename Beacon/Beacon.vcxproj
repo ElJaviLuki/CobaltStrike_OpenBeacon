@@ -43,6 +43,7 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="api.c" />
     <ClCompile Include="argument.c" />
     <ClCompile Include="beacon.c" />
     <ClCompile Include="channel.c" />

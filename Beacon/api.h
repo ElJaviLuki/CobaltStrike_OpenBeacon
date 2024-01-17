@@ -1,7 +1,9 @@
 #pragma once
 #include "beacon.h"
 
-typedef struct bapi
+#define MAX_DYNAMIC_FUNCTIONS 32
+
+typedef struct _bapi
 {
 	HMODULE (*fnLoadLibraryA)(LPCSTR lpLibFileName);
 	BOOL (*fnFreeLibrary)(HMODULE hLibModule);
@@ -36,41 +38,8 @@ typedef struct bapi
 	void (*fnBeaconInjectTemporaryProcess)(PROCESS_INFORMATION* pInfo, char* payload, int p_len, int p_offset,
 	                                       char* arg, int a_len);
 	BOOL (*fnToWideChar)(char* src, wchar_t* dst, int max);
-};
+	PROC dynamicFns[MAX_DYNAMIC_FUNCTIONS];
+} bapi;
 
-void BeaconAPI(bapi* beaconApi)
-{
-	*beaconApi = (bapi){
-		LoadLibraryA,
-		FreeLibrary,
-		GetProcAddress,
-		GetModuleHandleA,
-		BeaconDataParse,
-		BeaconDataPtr,
-		BeaconDataInt,
-		BeaconDataShort,
-		BeaconDataLength,
-		BeaconDataExtract,
-		BeaconFormatAlloc,
-		BeaconFormatReset,
-		BeaconFormatPrintf,
-		BeaconFormatAppend,
-		BeaconFormatFree,
-		BeaconFormatToString,
-		BeaconFormatInt,
-		BeaconOutput,
-		BeaconPrintf,
-		BeaconErrorD,
-		BeaconErrorDD,
-		BeaconErrorNA,
-		BeaconUseToken,
-		BeaconIsAdmin,
-		BeaconRevertToken,
-		BeaconGetSpawnTo,
-		BeaconCleanupProcess,
-		BeaconInjectProcess,
-		BeaconSpawnTemporaryProcess,
-		BeaconInjectTemporaryProcess,
-		toWideChar
-	};
-}
+void BeaconAPI(bapi* beaconApi);
+PROC* FindOrAddDynamicFunction(bapi* api, PROC newFunction);
