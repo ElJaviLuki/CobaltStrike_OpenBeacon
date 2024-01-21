@@ -197,6 +197,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_EXECUTE:
 			Execute(buffer, size);
 			break;
+		case COMMAND_DOWNLOAD:
+			DownloadDo(buffer, size);
+			break;
 	}
 }
 
