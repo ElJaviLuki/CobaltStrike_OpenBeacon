@@ -68,6 +68,7 @@
     <ClCompile Include="protocol.c" />
     <ClCompile Include="self.c" />
     <ClCompile Include="spawn.c" />
+    <ClCompile Include="stage.c" />
     <ClCompile Include="task.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>

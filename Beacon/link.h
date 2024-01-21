@@ -3,6 +3,8 @@
 
 void LinkViaTcp(char* buffer, int length);
 
+SOCKET LinkViaTcpConnect(char* target, short port);
+
 BOOL LinkAdd(PROTOCOL* protocol, int flags);
 
 void PipeReopen(char* buffer, int length);
