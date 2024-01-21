@@ -134,6 +134,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_FILE_LIST:
 			FilesystemList(buffer, size);
 			break;
+		case COMMAND_LSOCKET_CLOSE:
+			ChannelLSocketClose(buffer, size);
+			break;
 		case COMMAND_INJECT_PID_PING:
 			InjectIntoPidAndPing(buffer, size, TRUE);
 			break;
