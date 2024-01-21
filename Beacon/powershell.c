@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "powershell.h"
+
 char* gImportedPshScript;
 
 char* PowershellImport(char* buffer, int size)

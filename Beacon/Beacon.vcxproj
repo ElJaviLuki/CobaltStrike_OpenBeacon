@@ -37,6 +37,7 @@
     <ClInclude Include="network.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pipe.h" />
+    <ClInclude Include="powershell.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="self.h" />
     <ClInclude Include="settings.h" />

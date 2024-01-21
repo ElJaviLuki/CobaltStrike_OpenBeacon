@@ -87,6 +87,9 @@
     <ClInclude Include="stage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="powershell.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">

