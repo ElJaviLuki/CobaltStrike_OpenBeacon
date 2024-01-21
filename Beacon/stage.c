@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "stage.h"
+
 #include "beacon.h"
 #include "link.h"
 #include "network.h"
