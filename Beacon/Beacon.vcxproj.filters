@@ -155,5 +155,8 @@
     <ClCompile Include="stage.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="powershell.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

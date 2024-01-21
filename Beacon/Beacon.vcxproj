@@ -66,6 +66,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="pipe.c" />
+    <ClCompile Include="powershell.c" />
     <ClCompile Include="protocol.c" />
     <ClCompile Include="self.c" />
     <ClCompile Include="spawn.c" />
