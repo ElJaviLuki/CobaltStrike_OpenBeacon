@@ -1,9 +1,10 @@
 #include "pch.h"
 
+#include "process.h"
+
 #include "beacon.h"
 
 #include "spawn.h"
-
 
 BOOL GetAccountNameFromToken(HANDLE hProcess, char* accountName, int length) {
 	HANDLE hToken;
