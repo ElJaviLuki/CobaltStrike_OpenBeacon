@@ -70,6 +70,7 @@
     </ClCompile>
     <ClCompile Include="pipe.c" />
     <ClCompile Include="powershell.c" />
+    <ClCompile Include="process.c" />
     <ClCompile Include="protocol.c" />
     <ClCompile Include="self.c" />
     <ClCompile Include="spawn.c" />

@@ -164,6 +164,9 @@
     <ClCompile Include="powershell.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="process.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="metadata.c">
       <Filter>Source Files</Filter>
     </ClCompile>
