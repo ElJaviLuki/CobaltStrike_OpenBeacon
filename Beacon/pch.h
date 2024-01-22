@@ -25,6 +25,7 @@
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #include <windows.h>
+#include <TlHelp32.h>
 
 #include "logger.h"
 #include "macros.h"
