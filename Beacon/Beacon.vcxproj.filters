@@ -90,6 +90,9 @@
     <ClInclude Include="powershell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="metadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -159,6 +162,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="powershell.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="metadata.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -34,6 +34,7 @@
     <ClInclude Include="link.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="macros.h" />
+    <ClInclude Include="metadata.h" />
     <ClInclude Include="network.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pipe.h" />
@@ -59,6 +60,7 @@
     <ClCompile Include="job.c" />
     <ClCompile Include="link.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="metadata.c" />
     <ClCompile Include="network.c" />
     <ClCompile Include="pch.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
