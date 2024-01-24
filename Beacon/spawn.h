@@ -27,3 +27,5 @@ BOOL RunUnderParent(char* cmd, int cmdLength, STARTUPINFO* startupInfo, PROCESS_
 BOOL AdjustMemoryPermissions(char* payload, int size);
 
 BOOL IsWow64ProcessEx(HANDLE hProcess);
+
+char* InjectLocally(char* payload, int size);
