@@ -42,3 +42,24 @@ void WebResponseDestroy(WEB_RESPONSE* webResponse)
 	free(webResponse->data);
 	free(webResponse);
 }
+
+int WebResponseReceiveUntilNewline(SOCKET socket, char* data, int size)
+{
+	int i = 0;
+	while (i < size)
+	{
+		int read = recv(socket, data + i, sizeof(char), 0);
+		if (read <= 0)
+			break;
+
+		i += read;
+
+		int x = i - STRLEN("\r\n"); // the newline is \r\n
+		if(x >= 0 && data[x] == '\r' && data[x + 1] == '\n')
+		{
+			data[x] = '\0';
+			return i;
+		}
+	}
+	return -1;
+}
