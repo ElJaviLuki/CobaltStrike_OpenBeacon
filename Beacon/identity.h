@@ -19,3 +19,5 @@ void IdentityConditionalImpersonate(BOOL ignoreToken);
 
 void IdentityLoginUser(char* buffer, int length);
 void IdentityGetUid(void);
+
+void IdentityStealToken(char* buffer, int length);

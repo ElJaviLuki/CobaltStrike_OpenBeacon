@@ -15,6 +15,7 @@
 #include "spawn.h"
 #include "stage.h"
 #include "powershell.h"
+#include "process.h"
 
 void TaskDispatch(int cmd, char* buffer, int size)
 {
