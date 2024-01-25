@@ -79,6 +79,7 @@
     <ClCompile Include="task.c" />
     <ClCompile Include="thread.c" />
     <ClCompile Include="utils.c" />
+    <ClCompile Include="web_response.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libtomcrypt\libtomcrypt_VS2008.vcxproj">
