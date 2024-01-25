@@ -10,13 +10,11 @@
 #include "identity.h"
 #include "inline_execute_object.h"
 #include "link.h"
+#include "network.h"
 #include "self.h"
 #include "spawn.h"
 #include "stage.h"
 #include "powershell.h"
-
-// Localhost for little endian
-#define LOCALHOST 0x0100007f
 
 void TaskDispatch(int cmd, char* buffer, int size)
 {

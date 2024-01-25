@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "beacon.h"
+#include "network.h"
 #include "thread.h"
 
 typedef struct WEB_RESPONSE
@@ -83,4 +85,31 @@ void WebResponseThread(WEB_RESPONSE* webResponse)
 	}
 
 	--gThreadsActive;
+}
+
+void WebServerInit(short port, char* content, int contentLength)
+{
+	NetworkInit();
+	SOCKET socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_HOPOPTS);
+	SOCKET acceptSocket = INVALID_SOCKET;
+	if (socket == INVALID_SOCKET)
+		closesocket(acceptSocket);
+
+	struct sockaddr_in service;
+	service.sin_family = AF_INET;
+	service.sin_addr.s_addr = LOCALHOST;
+	service.sin_port = htons(port);
+
+	int bindResult = bind(socket, (SOCKADDR*)&service, sizeof(service));
+	acceptSocket = socket;
+	if (bindResult == SOCKET_ERROR)
+		closesocket(acceptSocket);
+
+	int listenResult = listen(socket, 120);
+	acceptSocket = socket;
+	if (listenResult == SOCKET_ERROR)
+		closesocket(acceptSocket);
+
+	WEB_RESPONSE* webResponse = WebResponseInit(acceptSocket, content, contentLength);
+	CreateThreadEx(WebResponseThread, webResponse);
 }
