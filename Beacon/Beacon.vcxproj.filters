@@ -99,6 +99,9 @@
     <ClInclude Include="thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="web_response.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">

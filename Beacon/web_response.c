@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "web_response.h"
+
 #include "beacon.h"
 #include "network.h"
 #include "thread.h"

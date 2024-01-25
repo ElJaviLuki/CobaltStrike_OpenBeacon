@@ -47,6 +47,7 @@
     <ClInclude Include="stage.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="web_response.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api.c" />
