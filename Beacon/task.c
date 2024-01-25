@@ -85,6 +85,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_FILE_DRIVES:
 			FilesystemDrives(buffer, size);
 			break;
+		case COMMAND_FILE_RM:
+			FilesystemRemove(buffer, size);
+			break;
 		case COMMAND_WEBSERVER_LOCAL:
 			WebServerLocal(buffer, size);
 			break;
