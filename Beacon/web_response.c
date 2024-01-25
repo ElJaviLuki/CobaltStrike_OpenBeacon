@@ -31,4 +31,14 @@ WEB_RESPONSE* WebResponseInit(SOCKET socket, char* content, int contentLength)
 	webResponse->headerLength = strlen(webResponse->header);
 
 	webResponse->data = malloc(MAX_DATA_SIZE);
+	return webResponse;
+}
+
+void WebResponseDestroy(WEB_RESPONSE* webResponse)
+{
+	closesocket(webResponse->socket);
+	free(webResponse->content);
+	free(webResponse->header);
+	free(webResponse->data);
+	free(webResponse);
 }
