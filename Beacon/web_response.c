@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "thread.h"
+
 typedef struct WEB_RESPONSE
 {
 	SOCKET socket;
@@ -62,4 +64,23 @@ int WebResponseReceiveUntilNewline(SOCKET socket, char* data, int size)
 		}
 	}
 	return -1;
+}
+
+void WebResponseThread(WEB_RESPONSE* webResponse)
+{
+	SOCKET acceptSocket = accept(webResponse->socket, NULL, NULL);
+	if (acceptSocket == INVALID_SOCKET) {
+		WebResponseDestroy(webResponse);
+	} else
+	{
+		while (WebResponseReceiveUntilNewline(acceptSocket, webResponse->data, MAX_DATA_SIZE) > STRLEN("\r\n"));
+
+		send(acceptSocket, webResponse->header, webResponse->headerLength, 0);
+		send(acceptSocket, webResponse->content, webResponse->contentLength, 0);
+
+		WebResponseDestroy(webResponse);
+		closesocket(acceptSocket);
+	}
+
+	--gThreadsActive;
 }

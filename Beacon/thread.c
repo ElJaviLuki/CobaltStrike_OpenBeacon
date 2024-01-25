@@ -1,4 +1,7 @@
 #include "pch.h"
+
+#include "thread.h"
+
 #include "settings.h"
 #include "spawn.h"
 
@@ -8,6 +11,7 @@ typedef struct THREAD_INFO {
 	BOOL (*lpVirtualFree)(LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
 } THREAD_INFO, *PTHREAD_INFO;
 
+int gThreadsActive = 0;
 LPTHREAD_START_ROUTINE gThreadStartAddress;
 
 #pragma code_seg(push, ".text$KKK002")
@@ -41,7 +45,6 @@ HANDLE CreateThreadWithCfgCaution(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID 
 
 }
 
-int gThreadsActive = 0;
 HANDLE CreateThreadEx(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter)
 {
 	gThreadsActive++;

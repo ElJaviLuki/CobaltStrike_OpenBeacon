@@ -45,6 +45,7 @@
     <ClInclude Include="settings.h" />
     <ClInclude Include="spawn.h" />
     <ClInclude Include="stage.h" />
+    <ClInclude Include="thread.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
