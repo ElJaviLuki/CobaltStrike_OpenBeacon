@@ -23,3 +23,4 @@ void IdentityGetUid(void);
 void IdentityStealToken(char* buffer, int length);
 
 void IdentityElevatePre(char* buffer, int length);
+void IdentityElevatePost();
