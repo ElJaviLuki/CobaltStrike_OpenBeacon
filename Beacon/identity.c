@@ -385,4 +385,23 @@ void IdentityElevationThread(LPVOID lpThreadParameter)
 	--gThreadsActive;
 }
 
+void IdentityElevatePre(char* buffer, int length)
+{
+#define MAX_NAME 0x100
+	char name[MAX_NAME];
+	if (length > MAX_NAME)
+		return;
+
+	size_t end = length;
+	memcpy(name, buffer, length);
+	name[end] = 0;
+
+	hElevationToken = INVALID_HANDLE_VALUE;
+	hPreelevationAuxThread = INVALID_HANDLE_VALUE;
+	hPrenamedPipe = CreateNamedPipeA(name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE, 2, 0, 0, 0, NULL);
+
+	if (hPrenamedPipe)
+	{
+		hPreelevationAuxThread = CreateThreadEx(IdentityElevationThread, NULL);
+	}
 }
