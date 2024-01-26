@@ -63,6 +63,7 @@
     <ClCompile Include="job.c" />
     <ClCompile Include="link.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="memory.c" />
     <ClCompile Include="metadata.c" />
     <ClCompile Include="network.c" />
     <ClCompile Include="pch.c">
