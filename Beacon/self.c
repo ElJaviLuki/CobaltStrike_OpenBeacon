@@ -3,6 +3,7 @@
 #include "self.h"
 
 #include "beacon.h"
+#include "settings.h"
 
 int gSleepTime;
 int gJitter;
@@ -34,4 +35,18 @@ void Pause(char* buffer, int length)
 	int millis = BeaconDataInt(&parser);
 
 	Sleep(millis);
+}
+
+BOOL BeaconIsExpired()
+{
+	if(S_KILLDATE)
+	{
+		SYSTEMTIME now;
+		GetSystemTime(&now);
+
+		long time = now.wDay + 100 * (now.wMonth + 100 * now.wYear);
+		return time >= S_KILLDATE;
+	}
+
+	return FALSE;
 }
