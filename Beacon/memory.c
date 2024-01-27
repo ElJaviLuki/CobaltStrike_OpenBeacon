@@ -85,3 +85,42 @@ void MemoryCleanup()
 	gRecordCount = 0;
 	gIsHeapFiltering = TRUE;
 }
+
+HEAP_RECORD* MemoryGetHeapRecords()
+{
+	if(gIsHeapFiltering == FALSE && gHeapRecords)
+	{
+		return gHeapRecords;
+	}
+
+	int heapCount;
+
+	heapCount = 0;
+	for(int i=0; i<gRecordCount; i++)
+	{
+		if (gRecords[i].isHeap)
+		{
+			heapCount++;
+		}
+	}		
+
+	if(gHeapRecords)
+		free(gHeapRecords);
+
+	gHeapRecords = malloc(sizeof(HEAP_RECORD) * (heapCount + 1));
+	heapCount = 0;
+	for(int i=0; i < gRecordCount; i++)
+	{
+		if (gRecords[i].isHeap)
+		{
+			gHeapRecords[heapCount++] = (HEAP_RECORD) {
+				.ptr = gRecords[i].record.ptr,
+				.size = gRecords[i].record.size
+			};
+		}
+	}
+
+	gHeapRecords[heapCount] = (HEAP_RECORD) { 0 }; // null terminate
+	gIsHeapFiltering = FALSE;
+	return gHeapRecords;
+}
