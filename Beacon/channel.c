@@ -5,7 +5,7 @@
 #include "beacon.h"
 #include "network.h"
 
-typedef struct _CHANNEL_ENTRY
+typedef struct CHANNEL_ENTRY
 {
 	int id;
 	int state;
@@ -337,4 +337,45 @@ int ChannelReceiveData()
 	}
 
 	return numProcessedChannels;
+}
+
+void ChannelRemoveAllInactive()
+{
+	CHANNEL_ENTRY* prev = NULL;
+	for (CHANNEL_ENTRY* channel = gChannels; channel; channel = prev->next)
+	{
+		if (!channel->state)
+		{
+			if (channel->lastActive != 0)
+			{
+				if (GetTickCount() - channel->lastActive > 1000)
+				{
+					if (channel->type == CHANNEL_TYPE_CONNECT)
+					{
+						shutdown((SOCKET)channel->socket, SD_BOTH);
+					}
+
+					if (!closesocket((SOCKET)channel->socket) || channel->type != CHANNEL_TYPE_BIND)
+					{
+						if (prev == NULL)
+						{
+							gChannels = channel->next;
+							free(channel);
+							return;
+						}
+
+						prev->next = channel->next;
+						free(channel);
+						continue;
+					}
+				}
+			}
+			else
+			{
+				channel->lastActive = GetTickCount();
+			}
+		}
+		notClosed:
+		prev = channel;
+	}
 }
