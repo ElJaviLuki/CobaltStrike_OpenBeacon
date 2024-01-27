@@ -4,7 +4,10 @@ typedef struct RECORD
 {
 	char* ptr;
 	size_t size;
-} RECORD;
+} RECORD, HEAP_RECORD;
+
+#define ALLOC_TYPE_MALLOC 1
+#define ALLOC_TYPE_VIRTUALALLOC 2
 
 typedef struct RECORD_ENTRY
 {
@@ -18,6 +21,7 @@ typedef struct RECORD_ENTRY
 long long gRecordCount = 0;
 long long gRecordCapacity = 0;
 RECORD_ENTRY* gRecords;
+HEAP_RECORD* gHeapRecords;
 BOOL gIsHeapFiltering = TRUE;
 #define RECORD_CAPACITY_INCREMENT 25
 void MemoryInsert(char* buffer, int length, int type, BOOL isHeap, void(* cleanupCallback)(void* block))
@@ -47,4 +51,37 @@ void MemoryInsert(char* buffer, int length, int type, BOOL isHeap, void(* cleanu
 
 	gIsHeapFiltering = gIsHeapFiltering || isHeap;
 	gRecordCount++;
+}
+
+void MemoryCleanup()
+{
+	for(int i = 0; i < gRecordCount; i++)
+	{
+		RECORD_ENTRY* entry = &gRecords[i];
+		if(entry->callback)
+		{
+			entry->callback(entry->record.ptr);
+		} else
+		{
+			if(entry->allocType == ALLOC_TYPE_MALLOC)
+			{
+				memset(entry->record.ptr, 0, entry->record.size);
+				free(entry->record.ptr);
+			} else if(entry->allocType == ALLOC_TYPE_VIRTUALALLOC)
+			{
+				memset(entry->record.ptr, 0, entry->record.size);
+				VirtualFree(entry->record.ptr, 0, MEM_RELEASE);
+			}
+		}
+	}
+
+	if (gRecords)
+		free(gRecords);
+
+	if (gHeapRecords)
+		free(gHeapRecords);
+
+	gRecordCapacity = 0;
+	gRecordCount = 0;
+	gIsHeapFiltering = TRUE;
 }
