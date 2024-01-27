@@ -271,3 +271,21 @@ void ChannelLSocketClose(char* buffer, int length)
 				channel->state = CHANNEL_STATE_0;
 	}
 }
+
+int ChannelReceiveDataInternal(SOCKET socket, char* buffer, int length)
+{
+	int total = 0;
+	while (total < length)
+	{
+		int received = recv(socket, buffer + total, length - total, 0);
+		buffer += received;
+		total += received;
+		if (received == SOCKET_ERROR)
+		{
+			shutdown(socket, SD_BOTH);
+			closesocket(socket);
+			return SOCKET_ERROR;
+		}
+	}
+	return total;
+}
