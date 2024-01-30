@@ -19,6 +19,8 @@ typedef struct CHANNEL_ENTRY
 } CHANNEL_ENTRY;
 
 CHANNEL_ENTRY* gChannels;
+char* gChannelBuffer;
+int gChannelIdCount = 0;
 
 #define CHANNEL_STATE_0 0
 #define CHANNEL_STATE_1 1
@@ -92,7 +94,7 @@ void ChannelAdd(SOCKET socket, int id, int timeoutPeriod, int type, int port, in
 	gChannels = newChannel;
 }
 
-int gChannelIdCount = 0;
+
 long long ChannelGetId()
 {
 	return 0x4000000 + gChannelIdCount++ % 0x4000000;
@@ -290,7 +292,6 @@ int ChannelReceiveDataInternal(SOCKET socket, char* buffer, int length)
 	return total;
 }
 
-char* gChannelBuffer;
 int ChannelReceiveData()
 {
 #define CHANNEL_BUFFER_SIZE 0x100000
