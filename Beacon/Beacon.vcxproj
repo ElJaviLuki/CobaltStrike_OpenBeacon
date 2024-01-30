@@ -54,6 +54,7 @@
     <ClCompile Include="argument.c" />
     <ClCompile Include="beacon.c" />
     <ClCompile Include="channel.c" />
+    <ClCompile Include="crypto.c" />
     <ClCompile Include="data.c" />
     <ClCompile Include="download.c" />
     <ClCompile Include="filesystem.c" />
