@@ -22,7 +22,7 @@ int RandomInt(void)
 	return out;
 }
 
-int RandomEvenInt()
+int RandomEvenInt(void)
 {
 	int rdint = RandomInt();
 	return rdint - rdint % 2;
