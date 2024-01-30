@@ -14,3 +14,16 @@ DWORD ExpandEnvironmentStrings_s(const char* lpSrc, char* lpDst, size_t size) {
 	// expand the string
 	return ExpandEnvironmentStringsA(lpSrc, lpDst, size);
 }
+
+int RandomInt(void)
+{
+	int out;
+	rng_get_bytes((unsigned char*)&out, sizeof(out), NULL);
+	return out;
+}
+
+int RandomEvenInt()
+{
+	int rdint = RandomInt();
+	return rdint - rdint % 2;
+}
