@@ -15,6 +15,16 @@ DWORD ExpandEnvironmentStrings_s(const char* lpSrc, char* lpDst, size_t size) {
 	return ExpandEnvironmentStringsA(lpSrc, lpDst, size);
 }
 
+int RoundToNearestMultiple(int value, int multiple)
+{
+	return value - value % multiple;
+}
+
+int RoundToNearestEven(int value)
+{
+	return RoundToNearestMultiple(value, 2);
+}
+
 int RandomInt(void)
 {
 	int out;
@@ -24,6 +34,5 @@ int RandomInt(void)
 
 int RandomEvenInt(void)
 {
-	int rdint = RandomInt();
-	return rdint - rdint % 2;
+	return RoundToNearestEven(RandomInt());
 }
