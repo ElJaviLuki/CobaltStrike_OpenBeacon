@@ -10,6 +10,8 @@ char gHmacKey[16];
 char gIv[16];
 
 symmetric_key gRijndaelSymkey;
+symmetric_CBC gEncryptCbc;
+
 void CryptoSetupSha256AES(char* in)
 {
 
@@ -55,4 +57,32 @@ void EncryptSessionData(char* pubkey, char* in, int inlen, char* out, int* outle
 	{
 		exit(1);
 	}
+}
+
+int CryptoAesHmacEncrypt(char* buffer, int length)
+{
+	length += 16 - (length % 16);
+
+	if(cbc_start(gAesCipher, gIv, gCbcKey, sizeof(gCbcKey), 0, &gEncryptCbc) != CRYPT_OK)
+	{
+		exit(1);
+	}
+
+	if (cbc_encrypt(buffer, buffer, length, &gEncryptCbc) != CRYPT_OK)
+	{
+		exit(1);
+	}
+
+	if (cbc_done(&gEncryptCbc) != CRYPT_OK)
+	{
+		exit(1);
+	}
+
+	int outlen = 16;
+	if (hmac_memory(gHashSha256, gHmacKey, sizeof(gHmacKey), buffer, length, buffer + length, &outlen) != CRYPT_OK)
+	{
+		exit(1);
+	}
+
+	return length + 16;
 }
