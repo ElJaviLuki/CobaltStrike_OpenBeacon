@@ -25,6 +25,7 @@
     <ClInclude Include="callback.h" />
     <ClInclude Include="channel.h" />
     <ClInclude Include="command.h" />
+    <ClInclude Include="crypto.h" />
     <ClInclude Include="download.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="filesystem.h" />

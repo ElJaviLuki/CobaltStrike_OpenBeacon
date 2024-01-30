@@ -1,7 +1,6 @@
 #include "pch.h"
 
-#include "tomcrypt.h"
-#include "tomcrypt_hash.h"
+#include "crypto.h"
 
 int gHashSha256;
 int gAesCipher;
@@ -38,5 +37,22 @@ void CryptoSetupSha256AES(char* in)
 	{
 		exit(1);
 	}
+}
+
+void EncryptSessionData(char* pubkey, char* in, int inlen, char* out, int* outlen)
+{
+	register_prng(&sprng_desc);
+	int prng_idx = find_prng(sprng_desc.name);
+	ltc_mp = ltm_desc;
+
+	rsa_key key;
+	if(rsa_import((unsigned char*)pubkey, 162, &key) != CRYPT_OK)
+	{
+		exit(1);
+	}
 	
+	if (rsa_encrypt_key_ex(in, inlen, out, outlen, "Zz", STRLEN("Zz"), 0, prng_idx, 0, LTC_PKCS_1_V1_5, &key))
+	{
+		exit(1);
+	}
 }
