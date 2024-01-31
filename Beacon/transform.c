@@ -216,3 +216,8 @@ void TransformEncode(TRANSFORM* transform,
 		memcpy(transform->headers, transform->temp, MAX_HEADERS);
 	}
 }
+
+void TransformDestroy(TRANSFORM* transform)
+{
+	BeaconDataFree(transform->parser);
+}
