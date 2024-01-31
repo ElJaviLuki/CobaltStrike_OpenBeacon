@@ -486,3 +486,11 @@ void ChannelHandleActivity()
 		}
 	}
 }
+
+void ChannelHandleAll(void)
+{
+	ChannelHandleActivity();
+	DWORD timeout = GetTickCount() + 3500;
+	while (ChannelReceiveData() > 0 && GetTickCount() < timeout) {}
+	ChannelRemoveAllInactive();
+}
