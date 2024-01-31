@@ -80,3 +80,13 @@ void NetworkUpdateSettings(HINTERNET hInternet)
 		InternetSetStatusCallback(hInternet, gNetworkStatusCallback);
 	}
 }
+
+BOOL NetworkCheckResponse(HINTERNET hInternet)
+{
+	char status[256];
+	DWORD statusCodeLength = sizeof(status);
+	if (!HttpQueryInfoA(hInternet, HTTP_QUERY_STATUS_CODE, status, &statusCodeLength, NULL))
+		return FALSE;
+
+	return atoi(status) == HTTP_STATUS_OK;
+}
