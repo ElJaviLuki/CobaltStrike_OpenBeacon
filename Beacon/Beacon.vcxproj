@@ -83,6 +83,7 @@
     <ClCompile Include="stage.c" />
     <ClCompile Include="task.c" />
     <ClCompile Include="thread.c" />
+    <ClCompile Include="transform.c" />
     <ClCompile Include="utils.c" />
     <ClCompile Include="web_response.c" />
   </ItemGroup>
