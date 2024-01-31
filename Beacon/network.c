@@ -2,6 +2,7 @@
 
 #include "network.h"
 
+#include "identity.h"
 #include "metadata.h"
 #include "settings.h"
 #include "transform.h"
@@ -176,4 +177,12 @@ int NetworkGetInternal(const char* uri, SESSION* session, char* data, const int 
 
 	InternetCloseHandle(hInternet);
 	return -1;
+}
+
+int NetworkGet(const char* getUri, SESSION* session, char* data, const int maxGet)
+{
+	IdentityRevertToken();
+	int result = NetworkGetInternal(getUri, session, data, maxGet);
+	IdentityImpersonateToken();
+	return result;
 }
