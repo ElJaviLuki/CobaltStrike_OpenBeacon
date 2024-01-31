@@ -9,14 +9,6 @@
 #include "spawn.h"
 #include "utils.h"
 
-typedef struct SESSION
-{
-	int bid;
-	int length;
-	char data[1024];
-} SESSION;
-
-
 int osMajorVersion;
 int gBid;
 SESSION gSession;

