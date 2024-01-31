@@ -19,7 +19,7 @@ typedef struct _LINK_ENTRY
 #define MAX_LINKS 28
 LINK_ENTRY gLinks[MAX_LINKS] = { 0 };
 
-BOOL LinkAdd(PROTOCOL* protocol, int flags)
+BOOL LinkAdd(PROTOCOL* protocol, int pivotHints)
 {
 	char buffer[256] = { 0 };
 	if (!protocol->waitForData(protocol, 30000, 10))
@@ -65,7 +65,7 @@ BOOL LinkAdd(PROTOCOL* protocol, int flags)
 	formatp format;
 	BeaconFormatUse(&format, openLink->callbackData, MAX_CALLBACK_DATA);
 	BeaconFormatInt(&format, bid);
-	BeaconFormatInt(&format, flags);
+	BeaconFormatInt(&format, pivotHints);
 
 	char* buf = BeaconDataBuffer(&parser);
 	BeaconFormatAppend(&format, buf, read - sizeof(int));
