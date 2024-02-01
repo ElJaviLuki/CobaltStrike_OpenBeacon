@@ -186,3 +186,82 @@ int NetworkGet(const char* getUri, SESSION* session, char* data, const int maxGe
 	IdentityImpersonateToken();
 	return result;
 }
+
+#define PROXY_MANUAL 0
+#define PROXY_DIRECT 1
+#define PROXY_PRECONFIG 2
+#define PROXY_MANUAL_CREDS 4
+
+HINTERNET gInternetOpen;
+void NetworkConfigureHttp(LPCSTR lpszServerName, INTERNET_PORT nServerPort, LPCSTR lpszAgent)
+{
+	IdentityRevertToken();
+
+	gNetworkOptions = INTERNET_FLAG_RELOAD | // retrieve the original item, not the cache
+		INTERNET_FLAG_NO_CACHE_WRITE | // don't add this to the IE cache
+		INTERNET_FLAG_KEEP_CONNECTION | // use keep-alive semantics
+		INTERNET_FLAG_NO_UI; // no cookie popup
+
+	if(S_PROTOCOL & PROTOCOL_HTTPS)
+	{
+		gNetworkOptions |= INTERNET_FLAG_SECURE | // use PCT/SSL if applicable (HTTP)
+			INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | // ignore date invalid cert errors
+			INTERNET_FLAG_IGNORE_CERT_CN_INVALID; // ignore common name invalid cert errors
+	}
+
+	DWORD accessType;
+	LPCSTR proxy;
+
+	BOOL shouldCreateInternetOpen = TRUE;
+	if(S_PROXY_BEHAVIOR == PROXY_MANUAL || S_PROXY_BEHAVIOR == PROXY_MANUAL_CREDS)
+	{
+		accessType = INTERNET_OPEN_TYPE_PROXY;
+		proxy = S_PROXY_CONFIG;
+	}
+	else if(S_PROXY_BEHAVIOR == PROXY_DIRECT)
+	{
+		accessType = INTERNET_OPEN_TYPE_DIRECT;
+		proxy = NULL;
+	}
+	else if(S_PROXY_BEHAVIOR == PROXY_PRECONFIG)
+	{
+		accessType = INTERNET_OPEN_TYPE_PRECONFIG;
+		proxy = NULL;
+	} else
+	{
+		LERROR("Invalid proxy behavior: %d", S_PROXY_BEHAVIOR);
+		shouldCreateInternetOpen = FALSE;
+	}
+
+	if(shouldCreateInternetOpen)
+	{
+		gInternetOpen = InternetOpenA(
+			lpszAgent,
+			accessType,
+			proxy,
+			NULL,
+			0);
+	}
+
+	int timeout = 240000;
+	InternetSetOptionA(gInternetOpen, INTERNET_OPTION_SEND_TIMEOUT, &timeout, sizeof(timeout));
+	InternetSetOptionA(gInternetOpen, INTERNET_OPTION_RECEIVE_TIMEOUT, &timeout, sizeof(timeout));
+
+	gInternetConnect = InternetConnectA(
+		gInternetOpen,
+		lpszServerName,
+		nServerPort,
+		NULL,
+		NULL,
+		INTERNET_SERVICE_HTTP,
+		0,
+		0);
+
+	if (S_PROXY_BEHAVIOR == PROXY_MANUAL_CREDS)
+	{
+		InternetSetOptionA(gInternetConnect, INTERNET_OPTION_PROXY_USERNAME, S_PROXY_USER, STRLEN(S_PROXY_USER));
+		InternetSetOptionA(gInternetConnect, INTERNET_OPTION_PROXY_PASSWORD, S_PROXY_PASSWORD, STRLEN(S_PROXY_PASSWORD));
+	}
+	
+	IdentityImpersonateToken();
+}
