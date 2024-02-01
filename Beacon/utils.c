@@ -25,6 +25,11 @@ int RoundToNearestEven(int value)
 	return RoundToNearestMultiple(value, 2);
 }
 
+int RandomIntInRange(int min, int max)
+{
+	return min + rand() % (max - min + 1);
+}
+
 int RandomInt(void)
 {
 	int out;
