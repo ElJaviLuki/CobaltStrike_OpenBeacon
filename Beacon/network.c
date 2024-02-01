@@ -270,3 +270,13 @@ void NetworkConfigureHttp(LPCSTR lpszServerName, INTERNET_PORT nServerPort, LPCS
 	
 	IdentityImpersonateToken();
 }
+
+void NetworkClose(void)
+{
+	IdentityRevertToken();
+
+	InternetCloseHandle(gInternetConnect);
+	InternetCloseHandle(gInternetOpen);
+
+	IdentityImpersonateToken();
+}
