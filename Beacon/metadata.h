@@ -8,3 +8,4 @@ typedef struct SESSION
 } SESSION;
 
 extern int osMajorVersion;
+extern SESSION gSession;
