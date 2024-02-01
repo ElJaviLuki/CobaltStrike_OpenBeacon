@@ -62,7 +62,12 @@ ULONG NetworkGetActiveAdapterIPv4()
 #define PROTOCOL_HTTPS 8
 #define PROTOCOL_TCP_BIND 16
 
-INTERNET_STATUS_CALLBACK gNetworkStatusCallback;
+void NetworkStatusCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
+{
+	if (dwInternetStatus == INTERNET_STATUS_CONNECTED_TO_SERVER)
+		HttpAddRequestHeadersA(hInternet, S_HEADERS_REMOVE, INFINITE, HTTP_ADDREQ_FLAG_REPLACE);
+}
+
 void NetworkUpdateSettings(HINTERNET hInternet)
 {
 	if(S_PROTOCOL & PROTOCOL_HTTPS)
@@ -80,7 +85,7 @@ void NetworkUpdateSettings(HINTERNET hInternet)
 
 	if (S_HEADERS_REMOVE)
 	{
-		InternetSetStatusCallback(hInternet, gNetworkStatusCallback);
+		InternetSetStatusCallback(hInternet, NetworkStatusCallback);
 	}
 }
 
