@@ -46,6 +46,7 @@
     <ClInclude Include="settings.h" />
     <ClInclude Include="spawn.h" />
     <ClInclude Include="stage.h" />
+    <ClInclude Include="strategy.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="transform.h" />
     <ClInclude Include="utils.h" />
@@ -82,6 +83,16 @@
     <ClCompile Include="self.c" />
     <ClCompile Include="spawn.c" />
     <ClCompile Include="stage.c" />
+    <ClCompile Include="strategy.c" />
+    <ClInclude Include="strategy_default.c">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="strategy_random.c">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="strategy_failover.c">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClCompile Include="task.c" />
     <ClCompile Include="thread.c" />
     <ClCompile Include="transform.c" />
