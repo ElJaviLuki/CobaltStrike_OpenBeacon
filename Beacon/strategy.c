@@ -18,3 +18,33 @@
 #else
 #error "Invalid domain strategy"
 #endif
+
+BOOL StrategyMarkRetry(
+    const bool isConnectionFailed,
+    int* attempts,
+    int* sleepTime,
+    int* priorSleepTime)
+{
+    if (S_MAX_RETRY_STRATEGY_ATTEMPTS <= 0)
+	    return false;
+
+    if (isConnectionFailed)
+    {
+	    if (++*attempts >= S_MAX_RETRY_STRATEGY_INCREASE && !*priorSleepTime)
+	    {
+		    *priorSleepTime = *sleepTime;
+		    *sleepTime = min(*sleepTime, 1000 * S_MAX_RETRY_STRATEGY_DURATION);
+	    }
+	    if (*attempts >= S_MAX_RETRY_STRATEGY_ATTEMPTS)
+		    return true;
+    }
+    else if (*attempts > 0)
+    {
+	    *attempts = 0;
+	    if (*priorSleepTime)
+	    {
+		    *sleepTime = *priorSleepTime;
+		    *priorSleepTime = 0;
+	    }
+    }
+}
