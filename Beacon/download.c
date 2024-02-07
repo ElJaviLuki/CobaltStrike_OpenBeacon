@@ -140,3 +140,39 @@ void DownloadCloseSafely(DOWNLOAD_ENTRY* download)
 	BeaconOutput(CALLBACK_FILE_CLOSE, (char*)&id, sizeof(int));
 	fclose(download->file);
 }
+
+typedef struct DOWNLOAD_CHUNK
+{
+	int fid;
+	char remainingData[0x80000];
+} DOWNLOAD_CHUNK;
+
+void DownloadFileChunk(DOWNLOAD_ENTRY* download, int chunkMaxSize)
+{
+	static DOWNLOAD_CHUNK* gDownloadChunk;
+
+	if(gDownloadChunk)
+		return;
+
+	gDownloadChunk = malloc(sizeof(DOWNLOAD_CHUNK));
+	gDownloadChunk->fid = htonl(download->fid);
+	int toRead = min(chunkMaxSize, download->remainingData);
+
+	int totalRead = 0;
+	while (toRead)
+	{
+		const int read = fread(gDownloadChunk->remainingData + totalRead, 1, toRead, download->file);
+		if (!read)
+		{
+			download->remainingData = 0;
+			break;
+		}
+
+		download->remainingData -= read;
+		totalRead += read;
+		toRead -= read;
+	}
+
+	BeaconOutput(CALLBACK_FILE_WRITE, (char*)&gDownloadChunk, totalRead + sizeof(int));
+	DownloadCloseSafely(download);
+}
