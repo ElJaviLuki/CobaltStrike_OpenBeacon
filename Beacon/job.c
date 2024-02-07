@@ -148,6 +148,30 @@ JOB_ENTRY* JobRegisterProcess(PROCESS_INFORMATION* pi, HANDLE hRead, HANDLE hWri
 	return JobAdd(job);
 }
 
+int JobReadDataFromPipe(HANDLE hPipe, char* buffer, int size)
+{
+	DWORD totalBytesAvail = 0;
+	if(!PeekNamedPipe(hPipe, NULL, 0, NULL, &totalBytesAvail, NULL))
+		return -1;
+
+	DWORD read = 0;
+	DWORD totalRead = 0;
+	while(totalBytesAvail)
+	{
+		if(totalRead >= size)
+			break;
+
+		ReadFile(hPipe, buffer, size - totalRead, &read, NULL);
+		totalRead += read;
+		buffer += read;
+
+		if (!PeekNamedPipe(hPipe, NULL, 0, NULL, &totalBytesAvail, NULL))
+			return -1;
+	}
+
+	return totalRead;
+}
+
 JOB_ENTRY* JobRegisterPipe(HANDLE hRead, int pid32, int callbackType, char* description, BOOL isMsgMode)
 {
 	JOB_ENTRY* job = (JOB_ENTRY*)malloc(sizeof(JOB_ENTRY));
