@@ -17,3 +17,4 @@ typedef struct _PROTOCOL {
 PROTOCOL* ProtocolTcpInit(PROTOCOL* protocol, SOCKET socket);
 
 void ProtocolSmbOpenExplicit(char* data);
+int ProtocolSmbPipeRead(HANDLE channel, char* buffer, int length);

