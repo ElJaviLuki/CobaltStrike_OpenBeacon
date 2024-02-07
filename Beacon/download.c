@@ -130,3 +130,13 @@ void Upload(char* buffer, int length, char* mode)
 	cleanup:
 	free(lpFileName);
 }
+
+void DownloadCloseSafely(DOWNLOAD_ENTRY* download)
+{
+	if (download->remainingData != 0)
+		return;
+
+	int id = htonl(download->fid);
+	BeaconOutput(CALLBACK_FILE_CLOSE, (char*)&id, sizeof(int));
+	fclose(download->file);
+}
