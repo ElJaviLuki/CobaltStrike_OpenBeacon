@@ -17,7 +17,7 @@ Please note that this project is not a reverse-engineered version of the Cobalt 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/ElJaviLuki/CobaltStrike_Beacon.git
+    git clone https://github.com/ElJaviLuki/CobaltStrike_OpenBeacon.git
     ```
 
 2. Open the project in Visual Studio.
