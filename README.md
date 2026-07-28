@@ -1,5 +1,18 @@
 # Cobalt Strike Beacon Open Source Implementation
 
+> ## 👨‍💻 About the Author & Open to Opportunities
+>
+> I never expected that a project I started so naively from the comfort of my country house would catch the attention of professionals from Big Tech (Google, Atlassian, Alibaba, KPMG, HSBC), Cybersecurity firms (SpecterOps, MISP, CIRCL, CVE-Search, Cirosec, Picus Security, Bad Sector Labs, illics-intel Offensive Security, SixGen), Governments (Italian Ministry of Defense), and Universities (Peking, Nanjing, Patras, BLCU, etc.). 
+> 
+> Seeing this level of interest has been incredibly humbling and motivating. Because of this, I am currently expanding my career and I am **actively looking for new professional opportunities and academic collaborations.**
+> 
+> * **For Companies (Red Team / Cybersecurity / Dev):** I am open to job offers, internships, or freelance contracting. If my work on this project aligns with your team's needs, I'd love to chat.
+> * **For Universities & Researchers:** I am highly interested in joining a university program, research lab, or academic group to further develop my skills and contribute to formal research.
+> 
+> 📫 **How to reach me:**
+> * Email: eljaviluki@gmail.com
+> * LinkedIn: https://www.linkedin.com/in/eljaviluki
+
 ## Overview
 
 Welcome to the open-source implementation of the Cobalt Strike Beacon! This project aims to provide a fully functional, from-scratch alternative to the Cobalt Strike Beacon, offering transparency and flexibility for security professionals and enthusiasts.
